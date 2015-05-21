@@ -16,6 +16,9 @@ module GHC.TcPluginM.Extra
   , evByFiat
     -- * Report contractions
   , failWithProvenace
+    -- * Lookup
+  , lookupModule
+  , lookupName
     -- * Trace state of the plugin
   , tracePlugin
   )
@@ -27,12 +30,16 @@ import Data.Maybe (mapMaybe)
 -- GHC API
 import BasicTypes (TopLevelFlag (..))
 import Coercion   (Role (..), mkUnivCo)
-import FastString (fsLit)
+import FastString (FastString, fsLit)
+import Module     (Module, ModuleName, moduleNameString)
+import Name       (Name)
+import OccName    (OccName)
 import Outputable (($$), (<+>), empty, ppr, text)
 import Panic      (panicDoc)
 import TcEvidence (EvTerm (..), TcCoercion (..))
 import TcMType    (newEvVar)
-import TcPluginM  (TcPluginM, tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
+import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
+                   tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
@@ -103,6 +110,25 @@ failWithProvenace ct = return (TcPluginContradiction (ct : parents))
                       . classifyPredType . snd)
             $ map (\ev -> (ev,varType ev)) lclbndrs
     parents = map (\(id_,p) -> mkNonCanonical $ CtWanted p id_ loc) eqBndrs
+
+-- | Find a module
+lookupModule :: ModuleName -- ^ Name of the module
+             -> FastString -- ^ Name of the package containing the module
+             -> TcPluginM Module
+lookupModule mod_nm pkg = do
+  found_module <- findImportedModule mod_nm $ Just pkg
+  case found_module of
+    Found _ md -> return md
+    _          -> do
+      found_module' <- findImportedModule mod_nm $ Just $ fsLit "this"
+      case found_module' of
+        Found _ md -> return md
+        _          -> error $ "Unable to resolve module looked up by plugin: " ++
+                              moduleNameString mod_nm
+
+-- | Find a 'Name' in a 'Module' given an 'OccName'
+lookupName :: Module -> OccName -> TcPluginM Name
+lookupName md occ = lookupOrig md occ
 
 -- | Print out extra information about the initialisation, stop, and every run
 -- of the plugin when @-ddump-tc-trace@ is enabled.
