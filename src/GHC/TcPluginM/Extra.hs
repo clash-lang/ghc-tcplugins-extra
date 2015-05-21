@@ -46,6 +46,7 @@ import HscTypes   (FoundHs (..))
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
+import TcType     (mkEqPred)
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
 
@@ -73,9 +74,18 @@ newWantedWithProvenance ev@(CtWanted {}) p = do
 newWantedWithProvenance ev _ =
   panicDoc "newWantedWithProvenance: not a Wanted: " (ppr ev)
 
-newSimpleGiven :: String -> CtLoc -> PredType -> (Type,Type) -> TcPluginM Ct
+-- | Create a new [G]iven constraint
+--
+-- Uses 'evByFiat' to create the evidence
+newSimpleGiven :: String -- ^ Name of the coercion
+               -> CtLoc  -- ^ 'CtLoc' of the [G]iven constraint from which the
+                         -- new constraint is derived
+               -> Type   -- ^ The LHS of the equivalence relation (~)
+               -> Type   -- ^ The RHS of the equivalence relation (~)
+               -> TcPluginM Ct
 #if __GLASGOW_HASKELL__ >= 711
-newSimpleGiven _name loc predicate (_ty1,_ty2) = do
+newSimpleGiven _name loc ty1 ty2 = do
+  let predicate = mkEqPred ty1 ty2
   ev <- unsafeTcPluginTcM $ newEvVar predicate
   let ctE = CtGiven { ctev_pred = predicate
                     , ctev_evar = ev
@@ -84,8 +94,9 @@ newSimpleGiven _name loc predicate (_ty1,_ty2) = do
       ct  = mkNonCanonical ctE
   return ct
 #else
-newSimpleGiven name loc predicate (ty1,ty2) = do
-  let ctE = CtGiven { ctev_pred = predicate
+newSimpleGiven name loc ty1 ty2 = do
+  let predicate = mkEqPred ty1 ty2
+      ctE = CtGiven { ctev_pred = predicate
                     , ctev_evtm = evByFiat name (ty1, ty2)
                     , ctev_loc  = loc
                     }
