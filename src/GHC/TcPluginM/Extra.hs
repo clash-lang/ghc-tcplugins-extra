@@ -31,7 +31,7 @@ import Data.Maybe (mapMaybe)
 import BasicTypes (TopLevelFlag (..))
 import Coercion   (Role (..), mkUnivCo)
 import FastString (FastString, fsLit)
-import Module     (Module, ModuleName, moduleNameString)
+import Module     (Module, ModuleName)
 import Name       (Name)
 import OccName    (OccName)
 import Outputable (($$), (<+>), empty, ppr, text)
@@ -40,6 +40,9 @@ import TcEvidence (EvTerm (..), TcCoercion (..))
 import TcMType    (newEvVar)
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
+#if __GLASGOW_HASKELL__ >= 711
+import HscTypes   (FoundHs (..))
+#endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
@@ -71,20 +74,24 @@ newWantedWithProvenance ev _ =
   panicDoc "newWantedWithProvenance: not a Wanted: " (ppr ev)
 
 newSimpleGiven :: String -> CtLoc -> PredType -> (Type,Type) -> TcPluginM Ct
-newSimpleGiven name loc predicate (ty1,ty2) = do
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 711
+#if __GLASGOW_HASKELL__ >= 711
+newSimpleGiven _name loc predicate (_ty1,_ty2) = do
   ev <- unsafeTcPluginTcM $ newEvVar predicate
-#endif
   let ctE = CtGiven { ctev_pred = predicate
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 711
                     , ctev_evar = ev
-#else
-                    , ctev_evtm = evByFiat name (ty1, ty2)
-#endif
                     , ctev_loc  = loc
                     }
       ct  = mkNonCanonical ctE
   return ct
+#else
+newSimpleGiven name loc predicate (ty1,ty2) = do
+  let ctE = CtGiven { ctev_pred = predicate
+                    , ctev_evtm = evByFiat name (ty1, ty2)
+                    , ctev_loc  = loc
+                    }
+      ct  = mkNonCanonical ctE
+  return ct
+#endif
 
 -- | The 'EvTerm' equivalent for 'Unsafe.unsafeCoerce'
 evByFiat :: String       -- ^ Name the coercion should have
@@ -118,13 +125,21 @@ lookupModule :: ModuleName -- ^ Name of the module
 lookupModule mod_nm pkg = do
   found_module <- findImportedModule mod_nm $ Just pkg
   case found_module of
+#if __GLASGOW_HASKELL__ >= 711
+    FoundModule h -> return (fr_mod h)
+#else
     Found _ md -> return md
+#endif
     _          -> do
       found_module' <- findImportedModule mod_nm $ Just $ fsLit "this"
       case found_module' of
+#if __GLASGOW_HASKELL__ >= 711
+        FoundModule h -> return (fr_mod h)
+#else
         Found _ md -> return md
-        _          -> error $ "Unable to resolve module looked up by plugin: " ++
-                              moduleNameString mod_nm
+#endif
+        _          -> panicDoc "Unable to resolve module looked up by plugin: "
+                               (ppr mod_nm)
 
 -- | Find a 'Name' in a 'Module' given an 'OccName'
 lookupName :: Module -> OccName -> TcPluginM Name
