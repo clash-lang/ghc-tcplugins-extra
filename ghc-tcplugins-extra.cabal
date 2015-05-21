@@ -3,6 +3,7 @@ version:             0.1.0.0
 synopsis:            Utilities for writing GHC type-checker plugins
 -- description:
 homepage:            http://www.clash-lang.org/
+bug-reports:         http://github.com/clash-lang/ghc-tcplugins-extra/issues
 license:             BSD2
 license-file:        LICENSE
 author:              Christiaan Baaij
