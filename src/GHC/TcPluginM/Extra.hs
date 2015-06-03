@@ -11,8 +11,11 @@ Maintainer :  Christiaan Baaij <christiaan.baaij@gmail.com>
 -}
 module GHC.TcPluginM.Extra
   ( -- * Create new constraints
-    newWantedWithProvenance
-  , newSimpleGiven
+    newWanted
+  , newGiven
+  , newDerived
+  , newWantedWithProvenance
+    -- * Creating evidence
   , evByFiat
     -- * Report contractions
   , failWithProvenace
@@ -41,12 +44,12 @@ import TcMType    (newEvVar)
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
 #if __GLASGOW_HASKELL__ >= 711
+import qualified  TcPluginM
 import HscTypes   (FoundHs (..))
 #endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
-import TcType     (mkEqPred)
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
 
@@ -57,10 +60,10 @@ import StaticFlags   (initStaticOpts, v_opt_C_ready)
 
 -- | Create a new [W]anted constraint that remembers from which wanted
 -- constraint it was derived
-newWantedWithProvenance :: CtEvidence    -- ^ Constraint from which the new
-                                        -- wanted is derived
-                        -> PredType     -- ^ The type of the new constraint
-                        -> TcPluginM Ct -- ^ The new constraint
+newWantedWithProvenance :: CtEvidence -- ^ Constraint from which the new
+                                      -- wanted is derived
+                        -> PredType   -- ^ The type of the new constraint
+                        -> TcPluginM CtEvidence
 newWantedWithProvenance ev@(CtWanted {}) p = do
   let loc    = ctEvLoc ev
       env    = ctLocEnv loc
@@ -68,48 +71,54 @@ newWantedWithProvenance ev@(CtWanted {}) p = do
       env'   = env {tcl_bndrs = (TcIdBndr id_ NotTopLevel):tcl_bndrs env}
       loc'   = setCtLocEnv loc env'
   evVar <- unsafeTcPluginTcM $ newEvVar p
-  let ev' = CtWanted {ctev_pred = p, ctev_evar = evVar, ctev_loc = loc'}
-      ct = mkNonCanonical ev'
-  return ct
+  return CtWanted {ctev_pred = p, ctev_evar = evVar, ctev_loc = loc'}
 newWantedWithProvenance ev _ =
   panicDoc "newWantedWithProvenance: not a Wanted: " (ppr ev)
 
--- | Create a new [G]iven constraint
---
--- Uses 'evByFiat' to create the evidence
-newSimpleGiven :: String -- ^ Name of the coercion
-               -> CtLoc  -- ^ 'CtLoc' of the [G]iven constraint from which the
-                         -- new constraint is derived
-               -> Type   -- ^ The LHS of the equivalence relation (~)
-               -> Type   -- ^ The RHS of the equivalence relation (~)
-               -> TcPluginM Ct
+-- | Create a new [W]anted constraint.
+newWanted  :: CtLoc -> PredType -> TcPluginM CtEvidence
 #if __GLASGOW_HASKELL__ >= 711
-newSimpleGiven _name loc ty1 ty2 = do
-  let predicate = mkEqPred ty1 ty2
-  ev <- unsafeTcPluginTcM $ newEvVar predicate
-  let ctE = CtGiven { ctev_pred = predicate
-                    , ctev_evar = ev
-                    , ctev_loc  = loc
-                    }
-      ct  = mkNonCanonical ctE
-  return ct
+newWanted = TcPluginM.newWanted
 #else
-newSimpleGiven name loc ty1 ty2 = do
-  let predicate = mkEqPred ty1 ty2
-      ctE = CtGiven { ctev_pred = predicate
-                    , ctev_evtm = evByFiat name (ty1, ty2)
+newWanted loc pty = do
+    new_ev <- unsafeTcPluginTcM $ newEvVar pty
+    return CtWanted { ctev_pred = pty
+                    , ctev_evar = new_ev
                     , ctev_loc  = loc
                     }
-      ct  = mkNonCanonical ctE
-  return ct
+#endif
+
+-- | Create a new [G]iven constraint, with the supplied evidence. This must not
+-- be invoked from 'tcPluginInit' or 'tcPluginStop', or it will panic.
+newGiven :: CtLoc -> PredType -> EvTerm -> TcPluginM CtEvidence
+#if __GLASGOW_HASKELL__ >= 711
+newGiven = TcPluginM.newGiven
+#else
+newGiven loc pty evtm = return
+  CtGiven { ctev_pred = pty
+          , ctev_evtm = evtm
+          , ctev_loc  = loc
+          }
+#endif
+
+-- | Create a new [D]erived constraint.
+newDerived :: CtLoc -> PredType -> TcPluginM CtEvidence
+#if __GLASGOW_HASKELL__ >= 711
+newDerived = TcPluginM.newDerived
+#else
+newDerived loc pty = return
+  CtDerived { ctev_pred = pty
+            , ctev_loc  = loc
+            }
 #endif
 
 -- | The 'EvTerm' equivalent for 'Unsafe.unsafeCoerce'
-evByFiat :: String       -- ^ Name the coercion should have
-         -> (Type, Type) -- ^ The LHS and RHS of the equivalence relation (~)
+evByFiat :: String -- ^ Name the coercion should have
+         -> Type   -- ^ The LHS of the equivalence relation (~)
+         -> Type   -- ^ The RHS of the equivalence relation (~)
          -> EvTerm
-evByFiat name (t1,t2) = EvCoercion $ TcCoercion
-                      $ mkUnivCo (fsLit name) Nominal t1 t2
+evByFiat name t1 t2 = EvCoercion $ TcCoercion
+                    $ mkUnivCo (fsLit name) Nominal t1 t2
 
 -- | Mark the given constraint as insoluble.
 --
