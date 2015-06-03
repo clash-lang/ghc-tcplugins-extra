@@ -1,5 +1,5 @@
 name:                ghc-tcplugins-extra
-version:             0.1.0.0
+version:             0.1
 synopsis:            Utilities for writing GHC type-checker plugins
 -- description:
 homepage:            http://www.clash-lang.org/
