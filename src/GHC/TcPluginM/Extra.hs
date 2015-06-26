@@ -43,10 +43,10 @@ import TcEvidence (EvTerm (..), TcCoercion (..))
 import TcMType    (newEvVar)
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
--- #if __GLASGOW_HASKELL__ >= 711
--- import qualified  TcPluginM
+#if __GLASGOW_HASKELL__ >= 711
+import qualified  TcPluginM
 -- import HscTypes   (FoundHs (..))
--- #endif
+#endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
