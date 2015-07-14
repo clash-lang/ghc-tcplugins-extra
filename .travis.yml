@@ -1,36 +1,37 @@
-env:
-  - GHCVER=7.10.1 CABALVER=1.22
-  - GHCVER=7.10.2 CABALVER=1.22
-  - GHCVER=head CABALVER=1.22
+language: c
+sudo: false
 
 matrix:
+  include:
+    - env: GHCVER=7.10.1 CABALVER=1.22 JOPTS="-j2"
+      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.1],sources: [hvr-ghc]}}
+    - env: GHCVER=head CABALVER=head JOPTS="-j2"
+      addons: {apt: {packages: [cabal-install-head,ghc-head],  sources: [hvr-ghc]}}
+
   allow_failures:
-    - env: GHCVER=7.10.2 CABALVER=1.22
-    - env: GHCVER=head CABALVER=1.22
+    - env: GHCVER=head CABALVER=head JOPTS="-j2"
 
 before_install:
-  - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
-  - travis_retry sudo apt-get update
-  - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
   - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+  - export CABAL=cabal-$CABALVER
   - ghc --version
-  - cabal --version
+  - $CABAL --version
+  - travis_retry $CABAL update
 
 install:
-  - travis_retry cabal update
-  - cabal install --dependencies-only
-  - cabal configure -fdeverror
+  - $CABAL install $JOPTS --dependencies-only
 
 script:
-  - cabal build
+  - $CABAL configure -v2 -fdeverror
+  - $CABAL build $JOPTS
 
   # tests that a source-distribution can be generated
-  - cabal sdist
+  - $CABAL sdist
 
   # check that the generated source-distribution can be built & installed
-  - export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
+  - export SRC_TGZ=$($CABAL info . | awk '{print $2 ".tar.gz";exit}') ;
     if [ -f "dist/$SRC_TGZ" ]; then
-       cabal install --force-reinstalls "dist/$SRC_TGZ";
+       $CABAL install $JOPTS --force-reinstalls "dist/$SRC_TGZ";
     else
        echo "expected 'dist/$SRC_TGZ' not found";
        exit 1;
@@ -42,4 +43,4 @@ notifications:
       - "irc.freenode.org#clash-lang"
     skip_join: true
     template:
-      - "\x0313ghc-tcplugins-extra\x03/\x0306%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
+      - "\x0313ghc-tcplugins-extra\x0f/\x0306%{branch}\x0f \x0314%{commit}\x0f %{message} \x0302\x1f%{build_url}\x0f"
