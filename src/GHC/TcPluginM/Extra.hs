@@ -45,7 +45,7 @@ import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
 #if __GLASGOW_HASKELL__ >= 711
 import qualified  TcPluginM
--- import HscTypes   (FoundHs (..))
+import HscTypes   (FoundHs (..))
 #endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
@@ -145,19 +145,19 @@ lookupModule :: ModuleName -- ^ Name of the module
 lookupModule mod_nm pkg = do
   found_module <- findImportedModule mod_nm $ Just pkg
   case found_module of
--- #if __GLASGOW_HASKELL__ >= 711
---     FoundModule h -> return (fr_mod h)
--- #else
+#if __GLASGOW_HASKELL__ >= 711
+    FoundModule h -> return (fr_mod h)
+#else
     Found _ md -> return md
--- #endif
+#endif
     _          -> do
       found_module' <- findImportedModule mod_nm $ Just $ fsLit "this"
       case found_module' of
--- #if __GLASGOW_HASKELL__ >= 711
---         FoundModule h -> return (fr_mod h)
--- #else
+#if __GLASGOW_HASKELL__ >= 711
+        FoundModule h -> return (fr_mod h)
+#else
         Found _ md -> return md
--- #endif
+#endif
         _          -> panicDoc "Unable to resolve module looked up by plugin: "
                                (ppr mod_nm)
 
