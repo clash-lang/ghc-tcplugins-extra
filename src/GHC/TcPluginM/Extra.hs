@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 {-# OPTIONS_HADDOCK show-extensions #-}
 
@@ -45,7 +46,7 @@ import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
 #if __GLASGOW_HASKELL__ >= 711
 import qualified  TcPluginM
-import HscTypes   (FoundHs (..))
+--import HscTypes   (FindResult (..))
 #endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
@@ -57,6 +58,14 @@ import Var        (varType)
 import Data.IORef    (readIORef)
 import Control.Monad (unless)
 import StaticFlags   (initStaticOpts, v_opt_C_ready)
+
+
+#if __GLASGOW_HASKELL__ >= 711
+pattern FoundModule a <- Found _ a
+fr_mod :: a -> a
+fr_mod = id
+#endif
+
 
 -- | Create a new [W]anted constraint that remembers from which wanted
 -- constraint it was derived
