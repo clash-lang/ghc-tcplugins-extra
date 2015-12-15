@@ -40,17 +40,24 @@ import Name       (Name)
 import OccName    (OccName)
 import Outputable (($$), (<+>), empty, ppr, text)
 import Panic      (panicDoc)
+#if __GLASGOW_HASKELL__ >= 711
+import TcEvidence (EvTerm (..))
+#else
 import TcEvidence (EvTerm (..), TcCoercion (..))
+#endif
 import TcMType    (newEvVar)
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
 #if __GLASGOW_HASKELL__ >= 711
 import qualified  TcPluginM
---import HscTypes   (FindResult (..))
 #endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
+#if __GLASGOW_HASKELL__ >= 711
+import TcRnTypes  (TcEvDest (..))
+import TyCoRep    (UnivCoProvenance (..))
+#endif
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
 
@@ -61,6 +68,7 @@ import StaticFlags   (initStaticOpts, v_opt_C_ready)
 
 
 #if __GLASGOW_HASKELL__ >= 711
+pattern FoundModule :: Module -> FindResult
 pattern FoundModule a <- Found _ a
 fr_mod :: a -> a
 fr_mod = id
@@ -80,7 +88,13 @@ newWantedWithProvenance ev@(CtWanted {}) p = do
       env'   = env {tcl_bndrs = (TcIdBndr id_ NotTopLevel):tcl_bndrs env}
       loc'   = setCtLocEnv loc env'
   evVar <- unsafeTcPluginTcM $ newEvVar p
-  return CtWanted {ctev_pred = p, ctev_evar = evVar, ctev_loc = loc'}
+  return CtWanted { ctev_pred = p
+#if __GLASGOW_HASKELL__ >= 711
+                  , ctev_dest = EvVarDest evVar
+#else
+                  , ctev_evar = evVar
+#endif
+                  , ctev_loc  = loc'}
 newWantedWithProvenance ev _ =
   panicDoc "newWantedWithProvenance: not a Wanted: " (ppr ev)
 
@@ -126,8 +140,17 @@ evByFiat :: String -- ^ Name the coercion should have
          -> Type   -- ^ The LHS of the equivalence relation (~)
          -> Type   -- ^ The RHS of the equivalence relation (~)
          -> EvTerm
-evByFiat name t1 t2 = EvCoercion $ TcCoercion
-                    $ mkUnivCo (fsLit name) Nominal t1 t2
+evByFiat name t1 t2 = EvCoercion
+#if __GLASGOW_HASKELL__ < 711
+                    $ TcCoercion
+#endif
+                    $ mkUnivCo
+#if __GLASGOW_HASKELL__ >= 711
+                        (PluginProv name)
+#else
+                        (fsLit name)
+#endif
+                        Nominal t1 t2
 
 -- | Mark the given constraint as insoluble.
 --
@@ -145,7 +168,11 @@ failWithProvenace ct = return (TcPluginContradiction (ct : parents))
                                        ; _ -> False })
                       . classifyPredType . snd)
             $ map (\ev -> (ev,varType ev)) lclbndrs
+#if __GLASGOW_HASKELL__ >= 711
+    parents = map (\(id_,p) -> mkNonCanonical $ CtWanted p (EvVarDest id_) loc) eqBndrs
+#else
     parents = map (\(id_,p) -> mkNonCanonical $ CtWanted p id_ loc) eqBndrs
+#endif
 
 -- | Find a module
 lookupModule :: ModuleName -- ^ Name of the module
