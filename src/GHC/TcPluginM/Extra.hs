@@ -44,11 +44,14 @@ import Panic      (panicDoc)
 import TcEvidence (EvTerm (..))
 #else
 import TcEvidence (EvTerm (..), TcCoercion (..))
-#endif
 import TcMType    (newEvVar)
+#endif
+#if __GLASGOW_HASKELL__ < 711
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
-#if __GLASGOW_HASKELL__ >= 711
+#else
+import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
+                   tcPluginIO, tcPluginTrace, newEvVar, newCoercionHole)
 import qualified  TcPluginM
 #endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
@@ -57,6 +60,7 @@ import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
 #if __GLASGOW_HASKELL__ >= 711
 import TcRnTypes  (TcEvDest (..))
 import TyCoRep    (UnivCoProvenance (..))
+import Type       (isEqPred)
 #endif
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
@@ -87,14 +91,19 @@ newWantedWithProvenance ev@(CtWanted {}) p = do
       id_    = ctEvId ev
       env'   = env {tcl_bndrs = (TcIdBndr id_ NotTopLevel):tcl_bndrs env}
       loc'   = setCtLocEnv loc env'
+#if __GLASGOW_HASKELL__ >= 711
+  d <- if isEqPred p then HoleDest <$> TcPluginM.newCoercionHole
+                     else EvVarDest <$> TcPluginM.newEvVar p
+  return CtWanted { ctev_pred = p
+                  , ctev_dest = d
+                  , ctev_loc  = loc'}
+#else
   evVar <- unsafeTcPluginTcM $ newEvVar p
   return CtWanted { ctev_pred = p
-#if __GLASGOW_HASKELL__ >= 711
-                  , ctev_dest = EvVarDest evVar
-#else
                   , ctev_evar = evVar
-#endif
                   , ctev_loc  = loc'}
+#endif
+
 newWantedWithProvenance ev _ =
   panicDoc "newWantedWithProvenance: not a Wanted: " (ppr ev)
 
