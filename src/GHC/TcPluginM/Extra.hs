@@ -15,11 +15,15 @@ module GHC.TcPluginM.Extra
     newWanted
   , newGiven
   , newDerived
+#if __GLASGOW_HASKELL__ < 711
   , newWantedWithProvenance
+#endif
     -- * Creating evidence
   , evByFiat
+#if __GLASGOW_HASKELL__ < 711
     -- * Report contractions
   , failWithProvenace
+#endif
     -- * Lookup
   , lookupModule
   , lookupName
@@ -29,10 +33,14 @@ module GHC.TcPluginM.Extra
 where
 
 -- External
+#if __GLASGOW_HASKELL__ < 711
 import Data.Maybe (mapMaybe)
+#endif
 
 -- GHC API
+#if __GLASGOW_HASKELL__ < 711
 import BasicTypes (TopLevelFlag (..))
+#endif
 import Coercion   (Role (..), mkUnivCo)
 import FastString (FastString, fsLit)
 import Module     (Module, ModuleName)
@@ -49,21 +57,23 @@ import TcMType    (newEvVar)
 #if __GLASGOW_HASKELL__ < 711
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
-#else
-import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
-                   tcPluginIO, tcPluginTrace, newEvVar, newCoercionHole)
-import qualified  TcPluginM
-#endif
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
-#if __GLASGOW_HASKELL__ >= 711
-import TcRnTypes  (TcEvDest (..))
-import TyCoRep    (UnivCoProvenance (..))
-import Type       (isEqPred)
+#else
+import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
+                   tcPluginIO, tcPluginTrace)
+import qualified  TcPluginM
+import TcRnTypes  (CtEvidence (..), CtLoc,
+                   TcPlugin (..), TcPluginResult (..))
 #endif
+#if __GLASGOW_HASKELL__ >= 711
+import TyCoRep    (UnivCoProvenance (..))
+import Type       (PredType, Type)
+#else
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
+#endif
 
 -- workaround for https://ghc.haskell.org/trac/ghc/ticket/10301
 import Data.IORef    (readIORef)
@@ -79,6 +89,8 @@ fr_mod = id
 #endif
 
 
+#if __GLASGOW_HASKELL__ < 711
+{-# DEPRECATED newWantedWithProvenance "No longer available in GHC 8.0+" #-}
 -- | Create a new [W]anted constraint that remembers from which wanted
 -- constraint it was derived
 newWantedWithProvenance :: CtEvidence -- ^ Constraint from which the new
@@ -91,21 +103,14 @@ newWantedWithProvenance ev@(CtWanted {}) p = do
       id_    = ctEvId ev
       env'   = env {tcl_bndrs = (TcIdBndr id_ NotTopLevel):tcl_bndrs env}
       loc'   = setCtLocEnv loc env'
-#if __GLASGOW_HASKELL__ >= 711
-  d <- if isEqPred p then HoleDest <$> TcPluginM.newCoercionHole
-                     else EvVarDest <$> TcPluginM.newEvVar p
-  return CtWanted { ctev_pred = p
-                  , ctev_dest = d
-                  , ctev_loc  = loc'}
-#else
   evVar <- unsafeTcPluginTcM $ newEvVar p
   return CtWanted { ctev_pred = p
                   , ctev_evar = evVar
                   , ctev_loc  = loc'}
-#endif
 
 newWantedWithProvenance ev _ =
   panicDoc "newWantedWithProvenance: not a Wanted: " (ppr ev)
+#endif
 
 -- | Create a new [W]anted constraint.
 newWanted  :: CtLoc -> PredType -> TcPluginM CtEvidence
@@ -161,6 +166,8 @@ evByFiat name t1 t2 = EvCoercion
 #endif
                         Nominal t1 t2
 
+#if __GLASGOW_HASKELL__ < 711
+{-# DEPRECATED failWithProvenace "No longer available in GHC 8.0+" #-}
 -- | Mark the given constraint as insoluble.
 --
 -- If the [W]anted constraint was made by 'newWantedWithProvenance', it will
@@ -177,9 +184,6 @@ failWithProvenace ct = return (TcPluginContradiction (ct : parents))
                                        ; _ -> False })
                       . classifyPredType . snd)
             $ map (\ev -> (ev,varType ev)) lclbndrs
-#if __GLASGOW_HASKELL__ >= 711
-    parents = map (\(id_,p) -> mkNonCanonical $ CtWanted p (EvVarDest id_) loc) eqBndrs
-#else
     parents = map (\(id_,p) -> mkNonCanonical $ CtWanted p id_ loc) eqBndrs
 #endif
 
