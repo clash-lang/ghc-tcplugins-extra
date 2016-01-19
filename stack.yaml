@@ -1,0 +1,4 @@
+resolver: lts-4.2
+
+packages:
+- .
