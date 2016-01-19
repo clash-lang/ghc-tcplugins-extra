@@ -1,3 +1,8 @@
+{-|
+Copyright  :  (C) 2015-2016, University of Twente
+License    :  BSD2 (see the file LICENSE)
+Maintainer :  Christiaan Baaij <christiaan.baaij@gmail.com>
+-}
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -5,11 +10,6 @@
 
 {-# OPTIONS_HADDOCK show-extensions #-}
 
-{-|
-Copyright  :  (C) 2015, University of Twente
-License    :  BSD2 (see the file LICENSE)
-Maintainer :  Christiaan Baaij <christiaan.baaij@gmail.com>
--}
 module GHC.TcPluginM.Extra
   ( -- * Create new constraints
     newWanted
