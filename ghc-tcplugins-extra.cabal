@@ -1,14 +1,16 @@
 name:                ghc-tcplugins-extra
 version:             0.2
 synopsis:            Utilities for writing GHC type-checker plugins
--- description:
-homepage:            http://www.clash-lang.org/
+description:         Utilities for writing GHC type-checker plugins, such as
+                     creating constraints, with a stable API covering multiple
+                     GHC releases.
+homepage:            http://github.com/clash-lang/ghc-tcplugins-extra
 bug-reports:         http://github.com/clash-lang/ghc-tcplugins-extra/issues
 license:             BSD2
 license-file:        LICENSE
 author:              Christiaan Baaij
 maintainer:          christiaan.baaij@gmail.com
-copyright:           Copyright © 2015 University of Twente
+copyright:           Copyright © 2016 University of Twente
 category:            Type System
 build-type:          Simple
 extra-source-files:  README.md
