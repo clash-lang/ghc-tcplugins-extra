@@ -1,0 +1,12 @@
+language: haskell-stack
+
+env:
+  - GHCVER=7.10.3 CABALVER=1.22 STACK_SOLVER=YES
+  - GHCVER=7.10.3 STACK_YAML=stack-lts5.yml
+  - GHCVER=8.0.1 CABALVER=1.24 STACK_SOLVER=YES
+  - GHCVER=head CABALVER=head STACK_SOLVER=YES
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: GHCVER=head CABALVER=head STACK_SOLVER=YES
