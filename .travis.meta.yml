@@ -10,3 +10,11 @@ matrix:
   fast_finish: true
   allow_failures:
     - env: GHCVER=head CABALVER=head STACK_SOLVER=YES
+
+notifications:
+  irc:
+    channels:
+    - "irc.freenode.org#clash-lang"
+    skip_join: true
+    template:
+    - "\x0313ghc-tcplugins-extra\x0f/\x0306%{branch}\x0f \x0314%{commit}\x0f %{message} \x0302\x1f%{build_url}\x0f"
