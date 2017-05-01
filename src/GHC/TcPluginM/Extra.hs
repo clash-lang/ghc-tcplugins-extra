@@ -56,16 +56,19 @@ import TcMType    (newEvVar)
 #endif
 #if __GLASGOW_HASKELL__ < 711
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
-                   tcPluginIO, tcPluginTrace, unsafeTcPluginTcM)
+                   tcPluginTrace, unsafeTcPluginTcM)
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
 #else
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
-                   tcPluginIO, tcPluginTrace)
+                   tcPluginTrace)
 import qualified  TcPluginM
 import TcRnTypes  (CtEvidence (..), CtLoc,
                    TcPlugin (..), TcPluginResult (..))
+#endif
+#if __GLASGOW_HASKELL__ < 802
+import TcPluginM  (tcPluginIO)
 #endif
 #if __GLASGOW_HASKELL__ >= 711
 import TyCoRep    (UnivCoProvenance (..))
@@ -76,10 +79,11 @@ import Var        (varType)
 #endif
 
 -- workaround for https://ghc.haskell.org/trac/ghc/ticket/10301
+#if __GLASGOW_HASKELL__ < 802
 import Data.IORef    (readIORef)
 import Control.Monad (unless)
 import StaticFlags   (initStaticOpts, v_opt_C_ready)
-
+#endif
 
 #if __GLASGOW_HASKELL__ >= 711
 pattern FoundModule :: Module -> FindResult
@@ -246,6 +250,10 @@ tracePlugin s TcPlugin{..} = TcPlugin { tcPluginInit  = traceInit
 
 -- workaround for https://ghc.haskell.org/trac/ghc/ticket/10301
 initializeStaticFlags :: TcPluginM ()
+#if __GLASGOW_HASKELL__ < 802
 initializeStaticFlags = tcPluginIO $ do
   r <- readIORef v_opt_C_ready
   unless r initStaticOpts
+#else
+initializeStaticFlags = return ()
+#endif
