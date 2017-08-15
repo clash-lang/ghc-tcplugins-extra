@@ -12,7 +12,6 @@ before_install:
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo
   '?')]"
 - stack +RTS -N2 -RTS --version
-- ghc --version
 install:
 - if [ "$STACK_SOLVER" = "YES" ]; then rm -f stack.yaml; stack update; stack init
   --solver; fi; stack --no-terminal --skip-ghc-check list-dependencies|sort > installplan.txt;
@@ -30,35 +29,24 @@ script:
 matrix:
   fast_finish: true
   include:
-  - env: GHCVER=7.10.3 CABALVER=1.22 STACK_SOLVER=YES
+  - env: GHCVER=7.10.3 STACK_YAML=stack-lts6.yaml
     addons:
       apt:
-        sources:
-        - hvr-ghc
         packages:
-        - ghc-7.10.3
-        - cabal-install-1.22
         - libgmp-dev
-    compiler: ! ': # ghc-7.10.3  YES'
-  - env: GHCVER=7.10.3 STACK_YAML=stack-lts5.yml
+    compiler: ! ': # ghc-7.10.3 stack-lts6.yaml'
+  - env: GHCVER=8.0.2 STACK_YAML=stack-lts9.yaml
     addons:
       apt:
-        sources:
-        - hvr-ghc
         packages:
-        - ghc-7.10.3
         - libgmp-dev
-    compiler: ! ': # ghc-7.10.3 stack-lts5.yml'
-  - env: GHCVER=8.0.1 CABALVER=1.24 STACK_SOLVER=YES
+    compiler: ! ': # ghc-8.0.2 STACK_YAML=stack-lts9.yaml'
+  - env: GHCVER=8.2.1
     addons:
       apt:
-        sources:
-        - hvr-ghc
         packages:
-        - ghc-8.0.1
-        - cabal-install-1.24
         - libgmp-dev
-    compiler: ! ': # ghc-8.0.1  YES'
+    compiler: ! ': # ghc-8.2.1'
   - env: GHCVER=head CABALVER=head STACK_SOLVER=YES
     addons:
       apt:
@@ -68,7 +56,7 @@ matrix:
         - ghc-head
         - cabal-install-head
         - libgmp-dev
-    compiler: ! ': # ghc-head  YES'
+    compiler: ! ': # ghc-head YES'
   allow_failures:
   - env: GHCVER=head CABALVER=head STACK_SOLVER=YES
 cache:
