@@ -14,7 +14,8 @@ before_install:
 - stack +RTS -N2 -RTS --version
 install:
 - if [ "$STACK_SOLVER" = "YES" ]; then rm -f stack.yaml; stack update; stack init
-  --solver; fi; stack --no-terminal --skip-ghc-check list-dependencies|sort > installplan.txt;
+  --solver; stack config set system-ghc true; stack config set resolver ghc-$(ghc --numeric-version); stack solver --update-config; fi;
+  stack --no-terminal --skip-ghc-check list-dependencies|sort > installplan.txt;
   cat installplan.txt; stack --no-terminal --skip-ghc-check setup; if diff -u $HOME/.stack-work-cache/installplan.txt
   installplan.txt; then echo "cabal build-cache HIT"; rm -rf .stack-work; cp -a $HOME/.stack-work-cache
   .stack-work; rm -f .stack-work/installplan.txt; else echo "cabal build-cache MISS";
@@ -56,7 +57,7 @@ matrix:
         - ghc-head
         - cabal-install-head
         - libgmp-dev
-    compiler: ! ': # ghc-head YES'
+    compiler: ! ': # ghc-head'
   allow_failures:
   - env: GHCVER=head CABALVER=head STACK_SOLVER=YES
 cache:
