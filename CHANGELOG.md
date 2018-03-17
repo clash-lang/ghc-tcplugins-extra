@@ -1,3 +1,6 @@
+## 0.2.3 *March 17th 2018*
+* Functions for flattening constraints
+
 ## 0.2.2 *January 4th 2018*
 * Support for GHC-8.4.1-alpha1
 

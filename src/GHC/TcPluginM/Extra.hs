@@ -29,6 +29,14 @@ module GHC.TcPluginM.Extra
   , lookupName
     -- * Trace state of the plugin
   , tracePlugin
+#if __GLASGOW_HASKELL__ > 804
+    -- * Substitutions
+  , flattenGivens
+  , mkSubst
+  , mkSubst'
+  , substType
+  , substCt
+#endif
   )
 where
 
@@ -76,6 +84,13 @@ import Type       (PredType, Type)
 #else
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
+#endif
+#if __GLASGOW_HASKELL__ >= 804
+import Control.Arrow (second)
+import Data.Maybe    (mapMaybe)
+import TcRnTypes     (Ct (..))
+import TcType        (TcTyVar, TcType)
+import TyCoRep       (Type (..))
 #endif
 
 -- workaround for https://ghc.haskell.org/trac/ghc/ticket/10301
@@ -256,4 +271,66 @@ initializeStaticFlags = tcPluginIO $ do
   unless r initStaticOpts
 #else
 initializeStaticFlags = return ()
+#endif
+
+#if __GLASGOW_HASKELL__ > 804
+-- | Flattens evidence of constraints by substituting each others equalities.
+--
+-- __NB:__ Should only be used on /[G]iven/ constraints!
+-- __NB:__ Doesn't flatten under binders
+flattenGivens
+  :: [Ct]
+  -> [Ct]
+flattenGivens givens = map (substCt subst) givens
+ where
+  subst = mkSubst' givens
+
+-- | Create flattened substitutions from type equalities, i.e. the substitutions
+-- have been applied to each others right hand sides.
+mkSubst' :: [Ct] -> [(TcTyVar,TcType)]
+mkSubst' = foldr substSubst [] . mapMaybe mkSubst
+ where
+  substSubst (tv,t) s = (tv,substType s t) : map (second (substType [(tv,t)])) s
+
+-- | Create simple substitution from type equalities
+mkSubst
+  :: Ct
+  -> Maybe (TcTyVar, TcType)
+mkSubst (CTyEqCan {..})  = Just (cc_tyvar,cc_rhs)
+mkSubst (CFunEqCan {..}) = Just (cc_fsk,TyConApp cc_fun cc_tyargs)
+mkSubst _                = Nothing
+
+-- | Apply substitution in the evidence of Cts
+substCt
+  :: [(TcTyVar, TcType)]
+  -> Ct
+  -> Ct
+substCt subst ct =
+  ct { cc_ev = (cc_ev ct) {ctev_pred = substType subst (ctev_pred (cc_ev ct))}
+     }
+
+-- | Apply substitutions in Types
+--
+-- __NB:__ Doesn't substitute under binders
+substType
+  :: [(TcTyVar, TcType)]
+  -> TcType
+  -> TcType
+substType subst tv@(TyVarTy v) = case lookup v subst of
+  Just t  -> t
+  Nothing -> tv
+substType subst (AppTy t1 t2) =
+  AppTy (substType subst t1) (substType subst t2)
+substType subst (TyConApp tc xs) =
+  TyConApp tc (map (substType subst) xs)
+substType _subst t@(ForAllTy _tv _ty) =
+  -- TODO: Is it safe to do "dumb" substitution under binders?
+  -- ForAllTy tv (substType subst ty)
+  t
+substType subst (FunTy t1 t2) =
+  FunTy (substType subst t1) (substType subst t2)
+substType _ l@(LitTy _) = l
+substType subst (CastTy ty co) =
+  CastTy (substType subst ty) co
+substType _ co@(CoercionTy _) = co
 #endif
