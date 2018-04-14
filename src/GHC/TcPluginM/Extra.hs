@@ -49,6 +49,9 @@ import Data.Maybe (mapMaybe)
 #if __GLASGOW_HASKELL__ < 711
 import BasicTypes (TopLevelFlag (..))
 #endif
+#if MIN_VERSION_ghc(8,5,0)
+import CoreSyn    (Expr(..))
+#endif
 import Coercion   (Role (..), mkUnivCo)
 import FastString (FastString, fsLit)
 import Module     (Module, ModuleName)
@@ -147,7 +150,10 @@ newWanted loc pty = do
 -- | Create a new [G]iven constraint, with the supplied evidence. This must not
 -- be invoked from 'tcPluginInit' or 'tcPluginStop', or it will panic.
 newGiven :: CtLoc -> PredType -> EvTerm -> TcPluginM CtEvidence
-#if __GLASGOW_HASKELL__ >= 711
+#if MIN_VERSION_ghc(8,5,0)
+newGiven loc pty (EvExpr ev) = TcPluginM.newGiven loc pty ev
+newGiven _ _  ev = panicDoc "newGiven: not an EvExpr: " (ppr ev)
+#elif __GLASGOW_HASKELL__ >= 711
 newGiven = TcPluginM.newGiven
 #else
 newGiven loc pty evtm = return
@@ -173,9 +179,15 @@ evByFiat :: String -- ^ Name the coercion should have
          -> Type   -- ^ The LHS of the equivalence relation (~)
          -> Type   -- ^ The RHS of the equivalence relation (~)
          -> EvTerm
-evByFiat name t1 t2 = EvCoercion
+evByFiat name t1 t2 =
+#if MIN_VERSION_ghc(8,5,0)
+                      EvExpr
+                    $ Coercion
+#else
+                      EvCoercion
 #if __GLASGOW_HASKELL__ < 711
                     $ TcCoercion
+#endif
 #endif
                     $ mkUnivCo
 #if __GLASGOW_HASKELL__ >= 711
