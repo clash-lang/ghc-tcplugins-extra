@@ -1,3 +1,6 @@
+## 0.2.4 *March 17th 2018*
+* Fix exports
+
 ## 0.2.3 *March 17th 2018*
 * Functions for flattening constraints
 

@@ -29,7 +29,7 @@ module GHC.TcPluginM.Extra
   , lookupName
     -- * Trace state of the plugin
   , tracePlugin
-#if __GLASGOW_HASKELL__ > 804
+#if __GLASGOW_HASKELL__ >= 804
     -- * Substitutions
   , flattenGivens
   , mkSubst
@@ -285,7 +285,7 @@ initializeStaticFlags = tcPluginIO $ do
 initializeStaticFlags = return ()
 #endif
 
-#if __GLASGOW_HASKELL__ > 804
+#if __GLASGOW_HASKELL__ >= 804
 -- | Flattens evidence of constraints by substituting each others equalities.
 --
 -- __NB:__ Should only be used on /[G]iven/ constraints!
