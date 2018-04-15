@@ -30,7 +30,7 @@ module GHC.TcPluginM.Extra
     -- * Trace state of the plugin
   , tracePlugin
 #if __GLASGOW_HASKELL__ >= 804
-    -- * Substitutions
+    -- * Substitutions (GHC 8.4+)
   , flattenGivens
   , mkSubst
   , mkSubst'
@@ -289,7 +289,10 @@ initializeStaticFlags = return ()
 -- | Flattens evidence of constraints by substituting each others equalities.
 --
 -- __NB:__ Should only be used on /[G]iven/ constraints!
+--
 -- __NB:__ Doesn't flatten under binders
+--
+-- __NB:__ Only available on GHC 8.4+
 flattenGivens
   :: [Ct]
   -> [Ct]
@@ -299,12 +302,16 @@ flattenGivens givens = map (substCt subst) givens
 
 -- | Create flattened substitutions from type equalities, i.e. the substitutions
 -- have been applied to each others right hand sides.
+--
+-- __NB:__ Only available on GHC 8.4+
 mkSubst' :: [Ct] -> [(TcTyVar,TcType)]
 mkSubst' = foldr substSubst [] . mapMaybe mkSubst
  where
   substSubst (tv,t) s = (tv,substType s t) : map (second (substType [(tv,t)])) s
 
 -- | Create simple substitution from type equalities
+--
+-- __NB:__ Only available on GHC 8.4+
 mkSubst
   :: Ct
   -> Maybe (TcTyVar, TcType)
@@ -313,6 +320,8 @@ mkSubst (CFunEqCan {..}) = Just (cc_fsk,TyConApp cc_fun cc_tyargs)
 mkSubst _                = Nothing
 
 -- | Apply substitution in the evidence of Cts
+--
+-- __NB:__ Only available on GHC 8.4+
 substCt
   :: [(TcTyVar, TcType)]
   -> Ct
@@ -324,6 +333,8 @@ substCt subst ct =
 -- | Apply substitutions in Types
 --
 -- __NB:__ Doesn't substitute under binders
+--
+-- __NB:__ Only available on GHC 8.4+
 substType
   :: [(TcTyVar, TcType)]
   -> TcType
