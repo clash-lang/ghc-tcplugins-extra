@@ -1,3 +1,6 @@
+## 0.2.5 *April 15th 2018*
+* Support for GHC-8.5.20180306
+
 ## 0.2.4 *March 17th 2018*
 * Fix exports
 

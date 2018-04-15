@@ -1,5 +1,5 @@
 name:                ghc-tcplugins-extra
-version:             0.2.4
+version:             0.2.5
 synopsis:            Utilities for writing GHC type-checker plugins
 description:         Utilities for writing GHC type-checker plugins, such as
                      creating constraints, with a stable API covering multiple
@@ -18,7 +18,7 @@ extra-source-files:  README.md
                      CHANGELOG.md
 cabal-version:       >=1.10
 tested-with:         GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1,
-                     GHC == 8.5
+                     GHC == 8.4.2, GHC == 8.5
 
 source-repository head
   type: git
