@@ -89,10 +89,13 @@ import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
 #endif
 #if __GLASGOW_HASKELL__ >= 804
-import Control.Arrow (second)
+import Control.Arrow (first, second)
+import Data.Function (on)
+import Data.List     (groupBy, partition, sortOn)
 import Data.Maybe    (mapMaybe)
-import TcRnTypes     (Ct (..))
+import TcRnTypes     (Ct (..), ctLoc, ctEvId, mkNonCanonical)
 import TcType        (TcTyVar, TcType)
+import Type          (mkPrimEqPred)
 import TyCoRep       (Type (..))
 #endif
 
@@ -296,28 +299,46 @@ initializeStaticFlags = return ()
 flattenGivens
   :: [Ct]
   -> [Ct]
-flattenGivens givens = map (substCt subst) givens
+flattenGivens givens =
+  mapMaybe flatToCt flat ++ map (substCt subst') givens
  where
   subst = mkSubst' givens
+  (flat,subst')
+    = second (map fst . concat)
+    $ partition ((>= 2) . length)
+    $ groupBy ((==) `on` (fst.fst))
+    $ sortOn (fst.fst) subst
+
+  flatToCt [((_,lhs),ct),((_,rhs),_)]
+    = Just
+    $ mkNonCanonical
+    $ CtGiven (mkPrimEqPred lhs rhs) (ctEvId ct) (ctLoc ct)
+
+  flatToCt _ = Nothing
+
 
 -- | Create flattened substitutions from type equalities, i.e. the substitutions
 -- have been applied to each others right hand sides.
 --
 -- __NB:__ Only available on GHC 8.4+
-mkSubst' :: [Ct] -> [(TcTyVar,TcType)]
+mkSubst' :: [Ct] -> [((TcTyVar,TcType),Ct)]
 mkSubst' = foldr substSubst [] . mapMaybe mkSubst
  where
-  substSubst (tv,t) s = (tv,substType s t) : map (second (substType [(tv,t)])) s
+  substSubst :: ((TcTyVar,TcType),Ct)
+             -> [((TcTyVar,TcType),Ct)]
+             -> [((TcTyVar,TcType),Ct)]
+  substSubst ((tv,t),ct) s = ((tv,substType (map fst s) t),ct)
+                           : map (first (second (substType [(tv,t)]))) s
 
 -- | Create simple substitution from type equalities
 --
 -- __NB:__ Only available on GHC 8.4+
 mkSubst
   :: Ct
-  -> Maybe (TcTyVar, TcType)
-mkSubst (CTyEqCan {..})  = Just (cc_tyvar,cc_rhs)
-mkSubst (CFunEqCan {..}) = Just (cc_fsk,TyConApp cc_fun cc_tyargs)
-mkSubst _                = Nothing
+  -> Maybe ((TcTyVar, TcType),Ct)
+mkSubst ct@(CTyEqCan {..})  = Just ((cc_tyvar,cc_rhs),ct)
+mkSubst ct@(CFunEqCan {..}) = Just ((cc_fsk,TyConApp cc_fun cc_tyargs),ct)
+mkSubst _                   = Nothing
 
 -- | Apply substitution in the evidence of Cts
 --
