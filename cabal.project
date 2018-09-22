@@ -1,3 +1,3 @@
 packages: ./ghc-tcplugins-extra.cabal
 flags: +deverror
-allow-newer: *:base, *:template-haskell, *:ghc
+allow-newer: *:base, *:template-haskell
