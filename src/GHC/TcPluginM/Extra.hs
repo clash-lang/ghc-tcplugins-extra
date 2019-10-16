@@ -371,8 +371,13 @@ substType _subst t@(ForAllTy _tv _ty) =
   -- TODO: Is it safe to do "dumb" substitution under binders?
   -- ForAllTy tv (substType subst ty)
   t
+#if __GLASGOW_HASKELL__ >= 809
+substType subst (FunTy af t1 t2) =
+  FunTy af (substType subst t1) (substType subst t2)
+#else
 substType subst (FunTy t1 t2) =
   FunTy (substType subst t1) (substType subst t2)
+#endif
 substType _ l@(LitTy _) = l
 substType subst (CastTy ty co) =
   CastTy (substType subst ty) co
