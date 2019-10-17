@@ -1,3 +1,6 @@
+## 0.3.1
+* Support for GHC-8.9
+
 ## 0.3 *May 8th 2018*
 * Fix bug where results of `flattenGivens` was ambiguous
 

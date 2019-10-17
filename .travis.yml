@@ -36,8 +36,10 @@ before_cache:
 
 matrix:
   include:
-    - compiler: "ghc-8.6.4"
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.6.4], sources: [hvr-ghc]}}
+    - compiler: "ghc-8.8.1"
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-3.0,ghc-8.8.1], sources: [hvr-ghc]}}
+    - compiler: "ghc-8.6.5"
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.6.5], sources: [hvr-ghc]}}
     - compiler: "ghc-8.4.4"
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.4.4], sources: [hvr-ghc]}}
     - compiler: "ghc-8.2.2"
@@ -46,14 +48,30 @@ matrix:
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.0.2], sources: [hvr-ghc]}}
     - compiler: "ghc-7.10.3"
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-7.10.3], sources: [hvr-ghc]}}
-    - compiler: "ghc-head"
-      env: GHCHEAD=true
-      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-head,ghc-head], sources: [hvr-ghc]}}
+    - env:
+        - GHCHEAD=true
+        - GHC_ZIP='https://gitlab.haskell.org/ghc/ghc/-/jobs/artifacts/master/download?job=validate-x86_64-linux-deb9-hadrian'
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-head], sources: [hvr-ghc]}}
 
   allow_failures:
-    - compiler: "ghc-head"
+    - env:
+        - GHCHEAD=true
+        - GHC_ZIP='https://gitlab.haskell.org/ghc/ghc/-/jobs/artifacts/master/download?job=validate-x86_64-linux-deb9-hadrian'
 
 before_install:
+  - GHCHEAD=${GHCHEAD-false}
+  - |
+    if $GHCHEAD; then
+      travis_retry curl -L $GHC_ZIP --output artifact.zip
+      unzip artifact.zip
+      tar xpf ghc.tar.xz --strip-components 1
+      mkdir -p $HOME/ghc-head
+      sed -i -e 's/lld/gold/g' lib/settings
+      ./configure --prefix=$HOME/ghc-head
+      make V=1 install
+      PATH=$HOME/ghc-head/bin:$PATH
+      CC=ghc
+    fi
   - HC=${CC}
   - HCPKG=${HC/ghc/ghc-pkg}
   - unset CC
@@ -70,7 +88,6 @@ install:
   - TEST=${TEST---enable-tests}
   - HADDOCK=${HADDOCK-true}
   - INSTALLED=${INSTALLED-true}
-  - GHCHEAD=${GHCHEAD-false}
   - travis_retry cabal new-update -v
   - "sed -i.bak 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config"
   - rm -fv cabal.project cabal.project.local

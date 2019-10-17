@@ -75,8 +75,12 @@ import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginTrace)
 import qualified  TcPluginM
+#if __GLASGOW_HASKELL__ < 809
 import TcRnTypes  (CtEvidence (..), CtLoc,
                    TcPlugin (..), TcPluginResult (..))
+#else
+import TcRnTypes  (TcPlugin (..), TcPluginResult (..))
+#endif
 #endif
 #if __GLASGOW_HASKELL__ < 802
 import TcPluginM  (tcPluginIO)
@@ -93,9 +97,18 @@ import Control.Arrow (first, second)
 import Data.Function (on)
 import Data.List     (groupBy, partition, sortOn)
 import Data.Maybe    (mapMaybe)
+#if __GLASGOW_HASKELL__ < 809
 import TcRnTypes     (Ct (..), ctLoc, ctEvId, mkNonCanonical)
+#else
+import Constraint
+  (Ct (..), CtEvidence (..), CtLoc, ctLoc, ctEvId, mkNonCanonical)
+#endif
 import TcType        (TcTyVar, TcType)
+#if __GLASGOW_HASKELL__ < 809
 import Type          (mkPrimEqPred)
+#else
+import Predicate     (mkPrimEqPred)
+#endif
 import TyCoRep       (Type (..))
 #endif
 
@@ -371,8 +384,13 @@ substType _subst t@(ForAllTy _tv _ty) =
   -- TODO: Is it safe to do "dumb" substitution under binders?
   -- ForAllTy tv (substType subst ty)
   t
+#if __GLASGOW_HASKELL__ >= 809
+substType subst (FunTy af t1 t2) =
+  FunTy af (substType subst t1) (substType subst t2)
+#else
 substType subst (FunTy t1 t2) =
   FunTy (substType subst t1) (substType subst t2)
+#endif
 substType _ l@(LitTy _) = l
 substType subst (CastTy ty co) =
   CastTy (substType subst ty) co
