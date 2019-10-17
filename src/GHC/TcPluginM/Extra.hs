@@ -75,8 +75,12 @@ import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginTrace)
 import qualified  TcPluginM
+#if __GLASGOW_HASKELL__ < 809
 import TcRnTypes  (CtEvidence (..), CtLoc,
                    TcPlugin (..), TcPluginResult (..))
+#else
+import TcRnTypes  (TcPlugin (..), TcPluginResult (..))
+#endif
 #endif
 #if __GLASGOW_HASKELL__ < 802
 import TcPluginM  (tcPluginIO)
@@ -93,9 +97,18 @@ import Control.Arrow (first, second)
 import Data.Function (on)
 import Data.List     (groupBy, partition, sortOn)
 import Data.Maybe    (mapMaybe)
+#if __GLASGOW_HASKELL__ < 809
 import TcRnTypes     (Ct (..), ctLoc, ctEvId, mkNonCanonical)
+#else
+import Constraint
+  (Ct (..), CtEvidence (..), CtLoc, ctLoc, ctEvId, mkNonCanonical)
+#endif
 import TcType        (TcTyVar, TcType)
+#if __GLASGOW_HASKELL__ < 809
 import Type          (mkPrimEqPred)
+#else
+import Predicate     (mkPrimEqPred)
+#endif
 import TyCoRep       (Type (..))
 #endif
 
