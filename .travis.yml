@@ -36,6 +36,9 @@ before_cache:
 
 matrix:
   include:
+    - compiler: "ghc-8.10.1"
+      env: HEADHACKAGE=true
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-3.0,ghc-8.10.1], sources: [hvr-ghc]}}
     - compiler: "ghc-8.8.1"
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-3.0,ghc-8.8.1], sources: [hvr-ghc]}}
     - compiler: "ghc-8.6.5"
@@ -50,12 +53,14 @@ matrix:
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-7.10.3], sources: [hvr-ghc]}}
     - env:
         - GHCHEAD=true
+        - HEADHACKAGE=true
         - GHC_ZIP='https://gitlab.haskell.org/ghc/ghc/-/jobs/artifacts/master/download?job=validate-x86_64-linux-deb9-hadrian'
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-head], sources: [hvr-ghc]}}
 
   allow_failures:
     - env:
         - GHCHEAD=true
+        - HEADHACKAGE=true
         - GHC_ZIP='https://gitlab.haskell.org/ghc/ghc/-/jobs/artifacts/master/download?job=validate-x86_64-linux-deb9-hadrian'
 
 before_install:
@@ -86,6 +91,7 @@ install:
   - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - BENCH=${BENCH---enable-benchmarks}
   - TEST=${TEST---enable-tests}
+  - HEADHACKAGE=${HEADHACKAGE-false}
   - HADDOCK=${HADDOCK-true}
   - INSTALLED=${INSTALLED-true}
   - travis_retry cabal new-update -v
@@ -93,7 +99,7 @@ install:
   - rm -fv cabal.project cabal.project.local
   # Overlay Hackage Package Index for GHC HEAD: https://github.com/hvr/head.hackage
   - |
-    if $GHCHEAD; then
+    if $HEADHACKAGE; then
       sed -i.bak 's/-- allow-newer:.*/allow-newer: *:base, *:template-haskell, *:ghc, *:Cabal/' ${HOME}/.cabal/config
 
       echo 'repository head.hackage'                                                        >> ${HOME}/.cabal/config
