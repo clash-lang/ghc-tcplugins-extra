@@ -72,9 +72,9 @@ import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
                    TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
                    ctLocEnv, mkNonCanonical, setCtLocEnv)
 #else
-import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
-                   tcPluginTrace)
+import TcPluginM  (FindResult (..), TcPluginM, lookupOrig, tcPluginTrace)
 import qualified  TcPluginM
+import qualified  Finder
 #if __GLASGOW_HASKELL__ < 809
 import TcRnTypes  (CtEvidence (..), CtLoc,
                    TcPlugin (..), TcPluginResult (..))
@@ -236,10 +236,16 @@ failWithProvenace ct = return (TcPluginContradiction (ct : parents))
 
 -- | Find a module
 lookupModule :: ModuleName -- ^ Name of the module
-             -> FastString -- ^ Name of the package containing the module
+             -> FastString -- ^ Name of the package containing the module.
+                           -- NOTE: This value is ignored on ghc>=8.0.
              -> TcPluginM Module
-lookupModule mod_nm pkg = do
-  found_module <- findImportedModule mod_nm $ Just pkg
+lookupModule mod_nm _pkg = do
+#if __GLASGOW_HASKELL__ >= 711
+  hsc_env <- TcPluginM.getTopEnv
+  found_module <- TcPluginM.tcPluginIO $ Finder.findPluginModule hsc_env mod_nm
+#else
+  found_module <- findImportedModule mod_nm $ Just _pkg
+#endif
   case found_module of
 #if __GLASGOW_HASKELL__ >= 711
     FoundModule h -> return (fr_mod h)
@@ -247,7 +253,7 @@ lookupModule mod_nm pkg = do
     Found _ md -> return md
 #endif
     _          -> do
-      found_module' <- findImportedModule mod_nm $ Just $ fsLit "this"
+      found_module' <- TcPluginM.findImportedModule mod_nm $ Just $ fsLit "this"
       case found_module' of
 #if __GLASGOW_HASKELL__ >= 711
         FoundModule h -> return (fr_mod h)
