@@ -39,7 +39,7 @@ matrix:
     - compiler: "ghc-8.10.1"
       env: HEADHACKAGE=true
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-3.0,ghc-8.10.1], sources: [hvr-ghc]}}
-    - compiler: "ghc-8.8.1"
+    - compiler: "ghc-8.8.2"
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-3.0,ghc-8.8.1], sources: [hvr-ghc]}}
     - compiler: "ghc-8.6.5"
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.6.5], sources: [hvr-ghc]}}
