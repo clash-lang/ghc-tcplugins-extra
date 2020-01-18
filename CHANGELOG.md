@@ -1,3 +1,6 @@
+## 0.3.2 *January 18th 2020*
+* [#11](https://github.com/clash-lang/ghc-tcplugins-extra/pull/11) Support `-hide-all-plugin-packages`/`-plugin-package-id`
+
 ## 0.3.1 *January 6th 2020*
 * Support for GHC-8.9
 
