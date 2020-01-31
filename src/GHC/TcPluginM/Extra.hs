@@ -29,14 +29,12 @@ module GHC.TcPluginM.Extra
   , lookupName
     -- * Trace state of the plugin
   , tracePlugin
-#if __GLASGOW_HASKELL__ >= 804
     -- * Substitutions (GHC 8.4+)
   , flattenGivens
   , mkSubst
   , mkSubst'
   , substType
   , substCt
-#endif
   )
 where
 
@@ -69,8 +67,8 @@ import TcMType    (newEvVar)
 import TcPluginM  (FindResult (..), TcPluginM, findImportedModule, lookupOrig,
                    tcPluginTrace, unsafeTcPluginTcM)
 import TcRnTypes  (Ct, CtEvidence (..), CtLoc, TcIdBinder (..), TcLclEnv (..),
-                   TcPlugin (..), TcPluginResult (..), ctEvId, ctEvLoc, ctLoc,
-                   ctLocEnv, mkNonCanonical, setCtLocEnv)
+                   TcPlugin (..), TcPluginResult (..), ctEvLoc,
+                   ctLocEnv, setCtLocEnv)
 #else
 import TcPluginM  (FindResult (..), TcPluginM, lookupOrig, tcPluginTrace)
 import qualified  TcPluginM
@@ -92,11 +90,9 @@ import Type       (PredType, Type)
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
 #endif
-#if __GLASGOW_HASKELL__ >= 804
 import Control.Arrow (first, second)
 import Data.Function (on)
 import Data.List     (groupBy, partition, sortOn)
-import Data.Maybe    (mapMaybe)
 #if __GLASGOW_HASKELL__ < 809
 import TcRnTypes     (Ct (..), ctLoc, ctEvId, mkNonCanonical)
 #else
@@ -109,6 +105,11 @@ import Type          (mkPrimEqPred)
 #else
 import Predicate     (mkPrimEqPred)
 #endif
+#if __GLASGOW_HASKELL__ < 711
+import TcRnTypes     (ctEvTerm)
+import TypeRep       (Type (..))
+#else
+import Data.Maybe    (mapMaybe)
 import TyCoRep       (Type (..))
 #endif
 
@@ -307,14 +308,11 @@ initializeStaticFlags = tcPluginIO $ do
 initializeStaticFlags = return ()
 #endif
 
-#if __GLASGOW_HASKELL__ >= 804
 -- | Flattens evidence of constraints by substituting each others equalities.
 --
 -- __NB:__ Should only be used on /[G]iven/ constraints!
 --
 -- __NB:__ Doesn't flatten under binders
---
--- __NB:__ Only available on GHC 8.4+
 flattenGivens
   :: [Ct]
   -> [Ct]
@@ -328,18 +326,25 @@ flattenGivens givens =
     $ groupBy ((==) `on` (fst.fst))
     $ sortOn (fst.fst) subst
 
+  flatToCt :: [((TcTyVar,TcType),Ct)] -> Maybe Ct
   flatToCt [((_,lhs),ct),((_,rhs),_)]
     = Just
     $ mkNonCanonical
-    $ CtGiven (mkPrimEqPred lhs rhs) (ctEvId ct) (ctLoc ct)
+    $ CtGiven (mkPrimEqPred lhs rhs)
+#if MIN_VERSION_ghc(8,4,0)
+              (ctEvId ct)
+#elif MIN_VERSION_ghc(8,0,0)
+              (ctEvId (cc_ev ct))
+#else
+              (ctEvTerm (cc_ev ct))
+#endif
+              (ctLoc ct)
 
   flatToCt _ = Nothing
 
 
 -- | Create flattened substitutions from type equalities, i.e. the substitutions
 -- have been applied to each others right hand sides.
---
--- __NB:__ Only available on GHC 8.4+
 mkSubst' :: [Ct] -> [((TcTyVar,TcType),Ct)]
 mkSubst' = foldr substSubst [] . mapMaybe mkSubst
  where
@@ -350,8 +355,6 @@ mkSubst' = foldr substSubst [] . mapMaybe mkSubst
                            : map (first (second (substType [(tv,t)]))) s
 
 -- | Create simple substitution from type equalities
---
--- __NB:__ Only available on GHC 8.4+
 mkSubst
   :: Ct
   -> Maybe ((TcTyVar, TcType),Ct)
@@ -360,8 +363,6 @@ mkSubst ct@(CFunEqCan {..}) = Just ((cc_fsk,TyConApp cc_fun cc_tyargs),ct)
 mkSubst _                   = Nothing
 
 -- | Apply substitution in the evidence of Cts
---
--- __NB:__ Only available on GHC 8.4+
 substCt
   :: [(TcTyVar, TcType)]
   -> Ct
@@ -373,8 +374,6 @@ substCt subst ct =
 -- | Apply substitutions in Types
 --
 -- __NB:__ Doesn't substitute under binders
---
--- __NB:__ Only available on GHC 8.4+
 substType
   :: [(TcTyVar, TcType)]
   -> TcType
@@ -393,11 +392,15 @@ substType _subst t@(ForAllTy _tv _ty) =
 #if __GLASGOW_HASKELL__ >= 809
 substType subst (FunTy af t1 t2) =
   FunTy af (substType subst t1) (substType subst t2)
-#else
+#elif __GLASGOW_HASKELL__ >= 802
+substType subst (FunTy t1 t2) =
+  FunTy (substType subst t1) (substType subst t2)
+#elif __GLASGOW_HASKELL__ < 711
 substType subst (FunTy t1 t2) =
   FunTy (substType subst t1) (substType subst t2)
 #endif
 substType _ l@(LitTy _) = l
+#if __GLASGOW_HASKELL__ > 711
 substType subst (CastTy ty co) =
   CastTy (substType subst ty) co
 substType _ co@(CoercionTy _) = co

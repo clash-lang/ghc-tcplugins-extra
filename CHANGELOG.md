@@ -1,3 +1,6 @@
+## 0.3.3 *January 31st 2020*
+* Expose functions for flattening constraints in GHC 8.2 and earlier
+
 ## 0.3.2 *January 18th 2020*
 * [#11](https://github.com/clash-lang/ghc-tcplugins-extra/pull/11) Support `-hide-all-plugin-packages`/`-plugin-package-id`
 
