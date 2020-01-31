@@ -29,7 +29,7 @@ module GHC.TcPluginM.Extra
   , lookupName
     -- * Trace state of the plugin
   , tracePlugin
-    -- * Substitutions (GHC 8.4+)
+    -- * Substitutions
   , flattenGivens
   , mkSubst
   , mkSubst'

@@ -1,4 +1,4 @@
-## 0.3.3 *January 31st 2020*
+## 0.4 *January 31st 2020*
 * Expose functions for flattening constraints in GHC 8.2 and earlier
 
 ## 0.3.2 *January 18th 2020*
