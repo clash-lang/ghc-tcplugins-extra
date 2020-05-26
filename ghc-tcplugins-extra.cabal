@@ -1,10 +1,10 @@
-cabal-version: 1.12
+cabal-version: 2.0
 
 -- This file has been generated from package.dhall by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ce175bdd799abe9b42f478093cc658262f8e3d8cc8744f903081fe653072e690
+-- hash: 9da4815a97446686ad8dccbcedd2ae2ae6de5a8aafaa3a621d4b38b592e6d5a6
 
 name:           ghc-tcplugins-extra
 version:        0.4.2
@@ -42,20 +42,128 @@ library
   exposed-modules:
     GHC.TcPluginM.Extra
   other-modules:
-    GhcApi
+    Internal
   hs-source-dirs:
     src
   other-extensions: CPP LambdaCase RecordWildCards PatternSynonyms
+  ghc-options: -Wall -Werror
   build-depends:
     base >=4.8 && <5
-  if impl(ghc > 8.4.4)
+  if impl(ghc >= 8.0.0)
+    ghc-options: -Wcompat -Wincomplete-uni-patterns -Widentities -Wredundant-constraints
+  if impl(ghc >= 8.4.0)
+    ghc-options: -fhide-source-paths
+  if impl(ghc >= 8.10.0)
+    other-modules:
+      GhcApi.Constraint
+      GhcApi.Predicate
+      GhcApi.GhcPlugins
+      Internal.Type
+      Internal.Constraint
+      Internal.Evidence
     hs-source-dirs:
       src-ghc-lib
+      src-ghc-lib-8.10
     build-depends:
-      ghc-lib
-  else
+      ghc >=8.10 && <8.12
+  if impl(ghc >= 8.8.0) && impl(ghc < 8.10.0)
+    other-modules:
+      GhcApi.Constraint
+      GhcApi.Predicate
+      GhcApi.GhcPlugins
+      Internal.Type
+      Internal.Constraint
+      Internal.Evidence
+    hs-source-dirs:
+      src-ghc-lib
+      src-ghc-lib-8.8
+    build-depends:
+      ghc >=8.8 && <8.10
+    mixins:
+      ghc hiding (),
+      ghc (TcRnTypes as TcRnTypes),
+      ghc (Type as Type),
+      ghc (TcRnTypes as Constraint),
+      ghc (Type as Predicate)
+  if impl(ghc >= 8.6.0) && impl(ghc < 8.8.0)
+    other-modules:
+      GhcApi.Constraint
+      GhcApi.Predicate
+      GhcApi.GhcPlugins
+      Internal.Type
+      Internal.Constraint
+      Internal.Evidence
+    hs-source-dirs:
+      src-ghc-lib
+      src-ghc-lib-8.6
+    build-depends:
+      ghc >=8.6 && <8.8
+    mixins:
+      ghc hiding (),
+      ghc (TcRnTypes as TcRnTypes),
+      ghc (Type as Type),
+      ghc (TcRnTypes as Constraint),
+      ghc (Type as Predicate)
+  if impl(ghc >= 8.4.0) && impl(ghc < 8.6.0)
+    other-modules:
+      GhcApi.Constraint
+      GhcApi.Predicate
+      GhcApi.GhcPlugins
+      Internal.Type
+      Internal.Constraint
+      Internal.Evidence
+    hs-source-dirs:
+      src-ghc-lib
+      src-ghc-lib-8.4
+    build-depends:
+      ghc >=8.4 && <8.6
+    mixins:
+      ghc hiding (),
+      ghc (TcRnTypes as TcRnTypes),
+      ghc (Type as Type),
+      ghc (TcRnTypes as Constraint),
+      ghc (Type as Predicate)
+  if impl(ghc >= 8.2.0) && impl(ghc < 8.4.0)
+    other-modules:
+      GhcApi.Constraint
+      GhcApi.Predicate
+      GhcApi.GhcPlugins
+      Internal.Type
+      Internal.Constraint
+      Internal.Evidence
+    hs-source-dirs:
+      src-ghc-lib
+      src-ghc-lib-8.2
+    build-depends:
+      ghc >=8.2 && <8.4
+    mixins:
+      ghc hiding (),
+      ghc (TcRnTypes as TcRnTypes),
+      ghc (Type as Type),
+      ghc (TcRnTypes as Constraint),
+      ghc (Type as Predicate)
+  if impl(ghc >= 8.0.0) && impl(ghc < 8.2.0)
+    other-modules:
+      GhcApi.Constraint
+      GhcApi.Predicate
+      GhcApi.GhcPlugins
+      Internal.Type
+      Internal.Constraint
+      Internal.Evidence
+    hs-source-dirs:
+      src-ghc-lib
+      src-ghc-lib-8.0
+    build-depends:
+      ghc >=8.0 && <8.2
+    mixins:
+      ghc hiding (),
+      ghc (TcRnTypes as TcRnTypes),
+      ghc (Type as Type),
+      ghc (TcRnTypes as Constraint),
+      ghc (Type as Predicate)
+  if impl(ghc >= 7.10.0) && impl(ghc < 8.0.0)
     hs-source-dirs:
       src-ghc
     build-depends:
-      ghc >=7.10 && <8.12
+      ghc >=7.10 && <8.0
   default-language: Haskell2010

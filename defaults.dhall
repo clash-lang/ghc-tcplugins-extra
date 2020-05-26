@@ -12,4 +12,22 @@
     "GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.2, GHC == 8.10.1"
 , extra-source-files =
     [ "README.md", "CHANGELOG.md", "defaults.dhall", "package.dhall" ]
+, ghc-options =
+    [ "-Wall", "-Werror" ]
+, when =
+    [ { condition =
+          "impl(ghc >= 8.0.0)"
+      , ghc-options =
+          [ "-Wcompat"
+          , "-Wincomplete-uni-patterns"
+          , "-Widentities"
+          , "-Wredundant-constraints"
+          ]
+      }
+    , { condition =
+          "impl(ghc >= 8.4.0)"
+      , ghc-options =
+          [ "-fhide-source-paths" ]
+      }
+    ]
 }

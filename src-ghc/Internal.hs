@@ -10,7 +10,7 @@ Maintainer :  Christiaan Baaij <christiaan.baaij@gmail.com>
 
 {-# OPTIONS_HADDOCK show-extensions #-}
 
-module GhcApi
+module Internal
   ( -- * Create new constraints
     newWanted
   , newGiven
