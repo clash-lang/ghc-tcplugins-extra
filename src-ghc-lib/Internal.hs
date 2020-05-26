@@ -1,10 +1,9 @@
-{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 {-# OPTIONS_HADDOCK show-extensions #-}
 
-module GhcApi
+module Internal
   ( -- * Create new constraints
     newWanted
   , newGiven
@@ -25,33 +24,28 @@ module GhcApi
   )
 where
 
-import GhcPlugins hiding (TcPlugin, mkSubst)
-import Coercion   (Role (..), mkUnivCo)
-import FastString (FastString, fsLit)
-import Module     (Module, ModuleName)
-import Name       (Name)
-import OccName    (OccName)
-import Outputable (($$), (<+>), empty, ppr, text)
-import Panic      (panicDoc)
-import TcEvidence (EvTerm (..))
-import TcPluginM  (FindResult (..), TcPluginM, lookupOrig, tcPluginTrace)
-import qualified  TcPluginM
-import qualified  Finder
-import TcRnTypes  (TcPlugin (..), TcPluginResult (..))
-import TyCoRep    (UnivCoProvenance (..))
-import Type       (PredType, Type)
+import Panic (panicDoc)
+import TcPluginM (TcPluginM, lookupOrig, tcPluginTrace)
+import qualified TcPluginM
+import qualified Finder
+import TcRnTypes (TcPlugin(..), TcPluginResult(..))
 import Control.Arrow (first, second)
 import Data.Function (on)
-import Data.List     (groupBy, partition, sortOn)
-import Constraint
-  (Ct (..), CtEvidence (..), CtLoc, ctLoc, ctEvId, mkNonCanonical)
-import TcType        (TcTyVar, TcType)
-import Predicate     (mkPrimEqPred)
-import Data.Maybe    (mapMaybe)
-import TyCoRep       (Type (..))
+import Data.List (groupBy, partition, sortOn)
+import TcType (TcType)
+import Data.Maybe (mapMaybe)
+import TyCoRep (Type(..))
+
+import GhcApi.Constraint (Ct(..), CtEvidence(..), CtLoc)
+import GhcApi.GhcPlugins
+
+import Internal.Type (substType)
+import Internal.Constraint (newGiven, flatToCt)
+import Internal.Evidence (evByFiat)
 
 pattern FoundModule :: Module -> FindResult
 pattern FoundModule a <- Found _ a
+
 fr_mod :: a -> a
 fr_mod = id
 
@@ -59,23 +53,9 @@ fr_mod = id
 newWanted  :: CtLoc -> PredType -> TcPluginM CtEvidence
 newWanted = TcPluginM.newWanted
 
--- | Create a new [G]iven constraint, with the supplied evidence. This must not
--- be invoked from 'tcPluginInit' or 'tcPluginStop', or it will panic.
-newGiven :: CtLoc -> PredType -> EvTerm -> TcPluginM CtEvidence
-newGiven loc pty (EvExpr ev) = TcPluginM.newGiven loc pty ev
-newGiven _ _  ev = panicDoc "newGiven: not an EvExpr: " (ppr ev)
-
 -- | Create a new [D]erived constraint.
 newDerived :: CtLoc -> PredType -> TcPluginM CtEvidence
 newDerived = TcPluginM.newDerived
-
--- | The 'EvTerm' equivalent for 'Unsafe.unsafeCoerce'
-evByFiat :: String -- ^ Name the coercion should have
-         -> Type   -- ^ The LHS of the equivalence relation (~)
-         -> Type   -- ^ The RHS of the equivalence relation (~)
-         -> EvTerm
-evByFiat name t1 t2 =
-  EvExpr $ Coercion $ mkUnivCo (PluginProv name) Nominal t1 t2
 
 -- | Find a module
 lookupModule :: ModuleName -- ^ Name of the module
@@ -91,6 +71,7 @@ lookupModule mod_nm _pkg = do
       found_module' <- TcPluginM.findImportedModule mod_nm $ Just $ fsLit "this"
       case found_module' of
         FoundModule h -> return (fr_mod h)
+        _ -> panicDoc "Couldn't find module" (ppr mod_nm)
 
 -- | Find a 'Name' in a 'Module' given an 'OccName'
 lookupName :: Module -> OccName -> TcPluginM Name
@@ -135,9 +116,7 @@ initializeStaticFlags = return ()
 -- __NB:__ Should only be used on /[G]iven/ constraints!
 --
 -- __NB:__ Doesn't flatten under binders
-flattenGivens
-  :: [Ct]
-  -> [Ct]
+flattenGivens :: [Ct] -> [Ct]
 flattenGivens givens =
   mapMaybe flatToCt flat ++ map (substCt subst') givens
  where
@@ -147,17 +126,6 @@ flattenGivens givens =
     $ partition ((>= 2) . length)
     $ groupBy ((==) `on` (fst.fst))
     $ sortOn (fst.fst) subst
-
-  flatToCt :: [((TcTyVar,TcType),Ct)] -> Maybe Ct
-  flatToCt [((_,lhs),ct),((_,rhs),_)]
-    = Just
-    $ mkNonCanonical
-    $ CtGiven (mkPrimEqPred lhs rhs)
-              (ctEvId ct)
-              (ctLoc ct)
-
-  flatToCt _ = Nothing
-
 
 -- | Create flattened substitutions from type equalities, i.e. the substitutions
 -- have been applied to each others right hand sides.
@@ -171,43 +139,13 @@ mkSubst' = foldr substSubst [] . mapMaybe mkSubst
                            : map (first (second (substType [(tv,t)]))) s
 
 -- | Create simple substitution from type equalities
-mkSubst
-  :: Ct
-  -> Maybe ((TcTyVar, TcType),Ct)
+mkSubst :: Ct -> Maybe ((TcTyVar, TcType),Ct)
 mkSubst ct@(CTyEqCan {..})  = Just ((cc_tyvar,cc_rhs),ct)
 mkSubst ct@(CFunEqCan {..}) = Just ((cc_fsk,TyConApp cc_fun cc_tyargs),ct)
 mkSubst _                   = Nothing
 
 -- | Apply substitution in the evidence of Cts
-substCt
-  :: [(TcTyVar, TcType)]
-  -> Ct
-  -> Ct
+substCt :: [(TcTyVar, TcType)] -> Ct -> Ct
 substCt subst ct =
   ct { cc_ev = (cc_ev ct) {ctev_pred = substType subst (ctev_pred (cc_ev ct))}
      }
-
--- | Apply substitutions in Types
---
--- __NB:__ Doesn't substitute under binders
-substType
-  :: [(TcTyVar, TcType)]
-  -> TcType
-  -> TcType
-substType subst tv@(TyVarTy v) = case lookup v subst of
-  Just t  -> t
-  Nothing -> tv
-substType subst (AppTy t1 t2) =
-  AppTy (substType subst t1) (substType subst t2)
-substType subst (TyConApp tc xs) =
-  TyConApp tc (map (substType subst) xs)
-substType _subst t@(ForAllTy _tv _ty) =
-  -- TODO: Is it safe to do "dumb" substitution under binders?
-  -- ForAllTy tv (substType subst ty)
-  t
-substType subst (FunTy af t1 t2) =
-  FunTy af (substType subst t1) (substType subst t2)
-substType _ l@(LitTy _) = l
-substType subst (CastTy ty co) =
-  CastTy (substType subst ty) co
-substType _ co@(CoercionTy _) = co
