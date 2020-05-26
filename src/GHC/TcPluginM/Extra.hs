@@ -38,4 +38,4 @@ module GHC.TcPluginM.Extra
   )
 where
 
-import GhcApi
+import Internal
