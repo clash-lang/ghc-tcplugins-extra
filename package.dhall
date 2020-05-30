@@ -45,7 +45,7 @@ in    defs
               [ { condition =
                     "impl(ghc >= 8.10.0)"
                 , source-dirs =
-                    [ "src-ghc-lib", "src-ghc-lib-8.10" ]
+                    [ "src-ghc", "src-ghc-8.10" ]
                 , dependencies =
                     [ { name =
                           "ghc"
@@ -67,7 +67,7 @@ in    defs
               , { condition =
                     "impl(ghc >= 8.8.0) && impl(ghc < 8.10.0)"
                 , source-dirs =
-                    [ "src-ghc-lib", "src-ghc-lib-8.8" ]
+                    [ "src-ghc", "src-ghc-8.8" ]
                 , dependencies =
                     [ { name =
                           "ghc"
@@ -94,7 +94,7 @@ in    defs
               , { condition =
                     "impl(ghc >= 8.6.0) && impl(ghc < 8.8.0)"
                 , source-dirs =
-                    [ "src-ghc-lib", "src-ghc-lib-8.6" ]
+                    [ "src-ghc", "src-ghc-8.6" ]
                 , dependencies =
                     [ { name =
                           "ghc"
@@ -121,7 +121,7 @@ in    defs
               , { condition =
                     "impl(ghc >= 8.4.0) && impl(ghc < 8.6.0)"
                 , source-dirs =
-                    [ "src-ghc-lib", "src-ghc-lib-8.4" ]
+                    [ "src-ghc", "src-ghc-8.4" ]
                 , dependencies =
                     [ { name =
                           "ghc"
@@ -148,7 +148,7 @@ in    defs
               , { condition =
                     "impl(ghc >= 8.2.0) && impl(ghc < 8.4.0)"
                 , source-dirs =
-                    [ "src-ghc-lib", "src-ghc-lib-8.2" ]
+                    [ "src-ghc", "src-ghc-8.2" ]
                 , dependencies =
                     [ { name =
                           "ghc"
@@ -175,7 +175,7 @@ in    defs
               , { condition =
                     "impl(ghc >= 8.0.0) && impl(ghc < 8.2.0)"
                 , source-dirs =
-                    [ "src-ghc-lib", "src-ghc-lib-8.0" ]
+                    [ "src-ghc", "src-ghc-8.0" ]
                 , dependencies =
                     [ { name =
                           "ghc"
@@ -202,7 +202,7 @@ in    defs
               , { condition =
                     "impl(ghc >= 7.10.0) && impl(ghc < 8.0.0)"
                 , source-dirs =
-                    [ "src-ghc" ] : List Text
+                    [ "src-ghc-cpp" ] : List Text
                 , dependencies =
                     [ { name =
                           "ghc"
