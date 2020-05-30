@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9da4815a97446686ad8dccbcedd2ae2ae6de5a8aafaa3a621d4b38b592e6d5a6
+-- hash: 37fe57885d2d60e5e80330ba9d6bad09ae02690d9d86330fb962d38f21b6e33a
 
 name:           ghc-tcplugins-extra
 version:        0.4.2
@@ -62,8 +62,8 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc-lib
-      src-ghc-lib-8.10
+      src-ghc
+      src-ghc-8.10
     build-depends:
       ghc >=8.10 && <8.12
   if impl(ghc >= 8.8.0) && impl(ghc < 8.10.0)
@@ -75,8 +75,8 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc-lib
-      src-ghc-lib-8.8
+      src-ghc
+      src-ghc-8.8
     build-depends:
       ghc >=8.8 && <8.10
     mixins:
@@ -94,8 +94,8 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc-lib
-      src-ghc-lib-8.6
+      src-ghc
+      src-ghc-8.6
     build-depends:
       ghc >=8.6 && <8.8
     mixins:
@@ -113,8 +113,8 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc-lib
-      src-ghc-lib-8.4
+      src-ghc
+      src-ghc-8.4
     build-depends:
       ghc >=8.4 && <8.6
     mixins:
@@ -132,8 +132,8 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc-lib
-      src-ghc-lib-8.2
+      src-ghc
+      src-ghc-8.2
     build-depends:
       ghc >=8.2 && <8.4
     mixins:
@@ -151,8 +151,8 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc-lib
-      src-ghc-lib-8.0
+      src-ghc
+      src-ghc-8.0
     build-depends:
       ghc >=8.0 && <8.2
     mixins:
@@ -163,7 +163,7 @@ library
       ghc (Type as Predicate)
   if impl(ghc >= 7.10.0) && impl(ghc < 8.0.0)
     hs-source-dirs:
-      src-ghc
+      src-ghc-cpp
     build-depends:
       ghc >=7.10 && <8.0
   default-language: Haskell2010
