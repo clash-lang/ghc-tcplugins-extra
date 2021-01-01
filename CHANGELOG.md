@@ -1,4 +1,4 @@
-## 0.4.1
+## 0.4.1 *January 1st 2021*
 * Support for GHC-9.0.1-rc1
 
 ## 0.4 *January 31st 2020*
