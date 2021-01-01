@@ -39,11 +39,32 @@ module GHC.TcPluginM.Extra
 where
 
 -- External
-#if __GLASGOW_HASKELL__ < 711
 import Data.Maybe (mapMaybe)
-#endif
+import Control.Arrow (first, second)
+import Data.Function (on)
+import Data.List     (groupBy, partition, sortOn)
 
 -- GHC API
+#if MIN_VERSION_ghc(9,0,0)
+import GHC.Core (Expr (..))
+import GHC.Core.Coercion (Role (..), mkPrimEqPred, mkUnivCo)
+import GHC.Core.Type  (PredType)
+import GHC.Core.TyCo.Rep (Type (..), UnivCoProvenance (..))
+import GHC.Data.FastString (FastString, fsLit)
+import qualified GHC.Driver.Finder as Finder
+import GHC.Unit.Module (Module, ModuleName)
+import GHC.Tc.Plugin (FindResult (..), TcPluginM, lookupOrig, tcPluginTrace)
+import qualified GHC.Tc.Plugin as TcPluginM
+import GHC.Tc.Utils.TcType (TcTyVar, TcType)
+import GHC.Tc.Types (TcPlugin (..), TcPluginResult (..))
+import GHC.Tc.Types.Constraint
+  (Ct (..), CtLoc, CtEvidence (..), ctEvId, ctLoc, mkNonCanonical)
+import GHC.Tc.Types.Evidence (EvTerm (..))
+import GHC.Types.Name (Name)
+import GHC.Types.Name.Occurrence (OccName)
+import GHC.Utils.Outputable ((<+>), ($$), empty, ppr, text)
+import GHC.Utils.Panic (panicDoc)
+#else
 #if __GLASGOW_HASKELL__ < 711
 import BasicTypes (TopLevelFlag (..))
 #endif
@@ -90,9 +111,6 @@ import Type       (PredType, Type)
 import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
 #endif
-import Control.Arrow (first, second)
-import Data.Function (on)
-import Data.List     (groupBy, partition, sortOn)
 #if __GLASGOW_HASKELL__ < 809
 import TcRnTypes     (Ct (..), ctLoc, ctEvId, mkNonCanonical)
 #else
@@ -109,8 +127,8 @@ import Predicate     (mkPrimEqPred)
 import TcRnTypes     (ctEvTerm)
 import TypeRep       (Type (..))
 #else
-import Data.Maybe    (mapMaybe)
 import TyCoRep       (Type (..))
+#endif
 #endif
 
 -- workaround for https://ghc.haskell.org/trac/ghc/ticket/10301
@@ -389,7 +407,10 @@ substType _subst t@(ForAllTy _tv _ty) =
   -- TODO: Is it safe to do "dumb" substitution under binders?
   -- ForAllTy tv (substType subst ty)
   t
-#if __GLASGOW_HASKELL__ >= 809
+#if __GLASGOW_HASKELL__ >= 900
+substType subst (FunTy k1 k2 t1 t2) =
+  FunTy k1 k2 (substType subst t1) (substType subst t2)
+#elif __GLASGOW_HASKELL__ >= 809
 substType subst (FunTy af t1 t2) =
   FunTy af (substType subst t1) (substType subst t2)
 #elif __GLASGOW_HASKELL__ >= 802
