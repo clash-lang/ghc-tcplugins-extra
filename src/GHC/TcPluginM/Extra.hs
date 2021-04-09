@@ -45,20 +45,25 @@ import Data.Function (on)
 import Data.List     (groupBy, partition, sortOn)
 
 -- GHC API
+#if MIN_VERSION_ghc(9,2,0)
+import qualified GHC.Unit.Finder as Finder
+import GHC.Tc.Types.Constraint (CanEqLHS (..))
+#elif MIN_VERSION_ghc(9,0,0)
+import qualified GHC.Driver.Finder as Finder
+#endif
 #if MIN_VERSION_ghc(9,0,0)
 import GHC.Core (Expr (..))
 import GHC.Core.Coercion (Role (..), mkPrimEqPred, mkUnivCo)
 import GHC.Core.Type  (PredType)
 import GHC.Core.TyCo.Rep (Type (..), UnivCoProvenance (..))
 import GHC.Data.FastString (FastString, fsLit)
-import qualified GHC.Driver.Finder as Finder
 import GHC.Unit.Module (Module, ModuleName)
 import GHC.Tc.Plugin (FindResult (..), TcPluginM, lookupOrig, tcPluginTrace)
 import qualified GHC.Tc.Plugin as TcPluginM
 import GHC.Tc.Utils.TcType (TcTyVar, TcType)
 import GHC.Tc.Types (TcPlugin (..), TcPluginResult (..))
 import GHC.Tc.Types.Constraint
-  (Ct (..), CtLoc, CtEvidence (..), ctEvId, ctLoc, mkNonCanonical)
+  (Ct (..), CtLoc, CtEvidence (..), QCInst (..), ctEvId, ctLoc, mkNonCanonical)
 import GHC.Tc.Types.Evidence (EvTerm (..))
 import GHC.Types.Name (Name)
 import GHC.Types.Name.Occurrence (OccName)
@@ -112,10 +117,14 @@ import Type       (EqRel (..), PredTree (..), PredType, Type, classifyPredType)
 import Var        (varType)
 #endif
 #if __GLASGOW_HASKELL__ < 809
-import TcRnTypes     (Ct (..), ctLoc, ctEvId, mkNonCanonical)
+import TcRnTypes     (Ct (..), ctLoc, ctEvId, mkNonCanonical
+#if __GLASGOW_HASKELL__ >= 806
+                     ,QCInst(..)
+#endif
+                    )
 #else
 import Constraint
-  (Ct (..), CtEvidence (..), CtLoc, ctLoc, ctEvId, mkNonCanonical)
+  (Ct (..), CtEvidence (..), CtLoc, QCInst(..), ctLoc, ctEvId, mkNonCanonical)
 #endif
 import TcType        (TcTyVar, TcType)
 #if __GLASGOW_HASKELL__ < 809
@@ -376,8 +385,14 @@ mkSubst' = foldr substSubst [] . mapMaybe mkSubst
 mkSubst
   :: Ct
   -> Maybe ((TcTyVar, TcType),Ct)
+#if MIN_VERSION_ghc(9,2,0)
+mkSubst ct@(CEqCan {..})
+  | TyVarLHS tyvar <- cc_lhs
+  = Just ((tyvar,cc_rhs),ct)
+#else
 mkSubst ct@(CTyEqCan {..})  = Just ((cc_tyvar,cc_rhs),ct)
 mkSubst ct@(CFunEqCan {..}) = Just ((cc_fsk,TyConApp cc_fun cc_tyargs),ct)
+#endif
 mkSubst _                   = Nothing
 
 -- | Apply substitution in the evidence of Cts
@@ -385,9 +400,22 @@ substCt
   :: [(TcTyVar, TcType)]
   -> Ct
   -> Ct
-substCt subst ct =
-  ct { cc_ev = (cc_ev ct) {ctev_pred = substType subst (ctev_pred (cc_ev ct))}
-     }
+substCt subst = overEvidencePredType (substType subst)
+
+-- | Modify the predicate type of the evidence term of a constraint
+overEvidencePredType :: (TcType -> TcType) -> Ct -> Ct
+#if MIN_VERSION_ghc(8,6,0)
+overEvidencePredType f (CQuantCan qci) =
+  let
+    ev :: CtEvidence
+    ev = qci_ev qci
+  in CQuantCan ( qci { qci_ev = ev { ctev_pred = f (ctev_pred ev) } } )
+#endif
+overEvidencePredType f ct =
+  let
+    ev :: CtEvidence
+    ev = cc_ev ct
+  in ct { cc_ev = ev { ctev_pred = f (ctev_pred ev) } }
 
 -- | Apply substitutions in Types
 --
