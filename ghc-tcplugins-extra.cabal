@@ -1,5 +1,5 @@
 name:                ghc-tcplugins-extra
-version:             0.4.1
+version:             0.4.2
 synopsis:            Utilities for writing GHC type-checker plugins
 description:         Utilities for writing GHC type-checker plugins, such as
                      creating constraints, with a stable API covering multiple
