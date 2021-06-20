@@ -1,10 +1,10 @@
 cabal-version: 2.0
 
--- This file has been generated from package.dhall by hpack version 0.31.0.
+-- This file has been generated from package.dhall by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 37fe57885d2d60e5e80330ba9d6bad09ae02690d9d86330fb962d38f21b6e33a
+-- hash: 8065fe626e25b7f46d13d11cd2e52957b1325ee48f7d04e7be11a50b2537efc5
 
 name:           ghc-tcplugins-extra
 version:        0.5
@@ -53,7 +53,7 @@ library
     ghc-options: -Wcompat -Wincomplete-uni-patterns -Widentities -Wredundant-constraints
   if impl(ghc >= 8.4.0)
     ghc-options: -fhide-source-paths
-  if impl(ghc >= 8.10.0)
+  if impl(ghc >= 9.0)
     other-modules:
       GhcApi.Constraint
       GhcApi.Predicate
@@ -62,7 +62,20 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc
+      src-ghc-tree
+      src-ghc-9.0
+    build-depends:
+      ghc >=9.0 && <9.2
+  if impl(ghc >= 8.10.0) && impl(ghc < 9.0)
+    other-modules:
+      GhcApi.Constraint
+      GhcApi.Predicate
+      GhcApi.GhcPlugins
+      Internal.Type
+      Internal.Constraint
+      Internal.Evidence
+    hs-source-dirs:
+      src-ghc-flat
       src-ghc-8.10
     build-depends:
       ghc >=8.10 && <8.12
@@ -75,7 +88,7 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc
+      src-ghc-flat
       src-ghc-8.8
     build-depends:
       ghc >=8.8 && <8.10
@@ -94,7 +107,7 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc
+      src-ghc-flat
       src-ghc-8.6
     build-depends:
       ghc >=8.6 && <8.8
@@ -113,7 +126,7 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc
+      src-ghc-flat
       src-ghc-8.4
     build-depends:
       ghc >=8.4 && <8.6
@@ -132,7 +145,7 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc
+      src-ghc-flat
       src-ghc-8.2
     build-depends:
       ghc >=8.2 && <8.4
@@ -151,7 +164,7 @@ library
       Internal.Constraint
       Internal.Evidence
     hs-source-dirs:
-      src-ghc
+      src-ghc-flat
       src-ghc-8.0
     build-depends:
       ghc >=8.0 && <8.2
