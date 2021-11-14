@@ -1,10 +1,10 @@
 cabal-version: 2.0
 
--- This file has been generated from package.dhall by hpack version 0.34.2.
+-- This file has been generated from package.dhall by hpack version 0.34.5.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8065fe626e25b7f46d13d11cd2e52957b1325ee48f7d04e7be11a50b2537efc5
+-- hash: 34fdb55853bb221416b100199aeda41cac86ca4fb58996d7da296b18690a53fb
 
 name:           ghc-tcplugins-extra
 version:        0.5
@@ -21,7 +21,8 @@ copyright:      Copyright © 2015-2016, University of Twente,
                             2017-2018, QBayLogic
 license:        BSD2
 license-file:   LICENSE
-tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.2, GHC == 8.10.1
+tested-with:
+  GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.2, GHC == 8.10.1
 build-type:     Simple
 extra-source-files:
   README.md
@@ -45,7 +46,11 @@ library
     Internal
   hs-source-dirs:
     src
-  other-extensions: CPP LambdaCase RecordWildCards PatternSynonyms
+  other-extensions:
+    CPP
+    LambdaCase
+    RecordWildCards
+    PatternSynonyms
   ghc-options: -Wall -Werror
   build-depends:
     base >=4.8 && <5
