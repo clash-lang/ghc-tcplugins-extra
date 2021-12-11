@@ -22,8 +22,8 @@ substType _subst t@(ForAllTy _tv _ty) =
   -- TODO: Is it safe to do "dumb" substitution under binders?
   -- ForAllTy tv (substType subst ty)
   t
-substType subst (FunTy af mult t1 t2) =
-  FunTy af mult (substType subst t1) (substType subst t2)
+substType subst (FunTy k1 k2 t1 t2) =
+  FunTy k1 k2 (substType subst t1) (substType subst t2)
 substType _ l@(LitTy _) = l
 substType subst (CastTy ty co) =
   CastTy (substType subst ty) co
