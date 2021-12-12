@@ -1,4 +1,4 @@
-module Internal.Constraint (newGiven, flatToCt) where
+module Internal.Constraint (newGiven, flatToCt, overEvidencePredType) where
 
 import GhcApi.GhcPlugins
 import GhcApi.Constraint
@@ -6,6 +6,7 @@ import GhcApi.Constraint
 
 import Panic (panicDoc)
 import TcType (TcType)
+import Constraint (QCInst(..))
 import TcEvidence (EvTerm(..))
 import TcPluginM (TcPluginM)
 import qualified TcPluginM (newGiven)
@@ -25,3 +26,16 @@ flatToCt [((_,lhs),ct),((_,rhs),_)]
               (ctLoc ct)
 
 flatToCt _ = Nothing
+
+-- | Modify the predicate type of the evidence term of a constraint
+overEvidencePredType :: (TcType -> TcType) -> Ct -> Ct
+overEvidencePredType f (CQuantCan qci) =
+  let
+    ev :: CtEvidence
+    ev = qci_ev qci
+  in CQuantCan ( qci { qci_ev = ev { ctev_pred = f (ctev_pred ev) } } )
+overEvidencePredType f ct =
+  let
+    ev :: CtEvidence
+    ev = cc_ev ct
+  in ct { cc_ev = ev { ctev_pred = f (ctev_pred ev) } }

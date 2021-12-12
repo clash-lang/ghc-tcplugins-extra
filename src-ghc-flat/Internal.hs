@@ -40,7 +40,7 @@ import GhcApi.Constraint (Ct(..), CtEvidence(..), CtLoc)
 import GhcApi.GhcPlugins
 
 import Internal.Type (substType)
-import Internal.Constraint (newGiven, flatToCt)
+import Internal.Constraint (newGiven, flatToCt, overEvidencePredType)
 import Internal.Evidence (evByFiat)
 
 pattern FoundModule :: Module -> FindResult
@@ -146,6 +146,4 @@ mkSubst _                   = Nothing
 
 -- | Apply substitution in the evidence of Cts
 substCt :: [(TcTyVar, TcType)] -> Ct -> Ct
-substCt subst ct =
-  ct { cc_ev = (cc_ev ct) {ctev_pred = substType subst (ctev_pred (cc_ev ct))}
-     }
+substCt subst = overEvidencePredType (substType subst)
