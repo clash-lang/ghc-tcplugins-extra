@@ -8,8 +8,6 @@ in  let ghc = { name = "ghc", mixin = [] : List Text }
                 ghc
               ⫽ { mixin =
                   [ "hiding ()"
-                  , "(TcRnTypes as TcRnTypes)"
-                  , "(Type as Type)"
                   , "(TcRnTypes as Constraint)"
                   , "(Type as Predicate)"
                   ]
