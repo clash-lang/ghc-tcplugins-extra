@@ -5,7 +5,7 @@ cabal-version: 2.0
 -- see: https://github.com/sol/hpack
 
 name:           ghc-tcplugins-extra
-version:        0.5
+version:        0.4.2
 synopsis:       Utilities for writing GHC type-checker plugins
 description:    Utilities for writing GHC type-checker plugins, such as
                 creating constraints, with a stable API covering multiple
@@ -21,7 +21,7 @@ license:        BSD2
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.2, GHC == 8.10.1
+    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.1, GHC == 9.2.1
 extra-source-files:
     README.md
     CHANGELOG.md
@@ -56,7 +56,7 @@ library
     ghc-options: -Wcompat -Wincomplete-uni-patterns -Widentities -Wredundant-constraints
   if impl(ghc >= 8.4.0)
     ghc-options: -fhide-source-paths
-  if impl(ghc >= 9.2)
+  if impl(ghc >= 9.2) && impl(ghc < 9.4)
     other-modules:
         GhcApi.Constraint
         GhcApi.Predicate
