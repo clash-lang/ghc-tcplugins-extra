@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP             #-}
 module Internal.Evidence (evByFiat) where
 
 import TcEvidence (EvTerm(..))
