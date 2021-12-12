@@ -33,7 +33,7 @@ in  let mods =
               , library =
                 { source-dirs = "src"
                 , other-extensions =
-                  [ "CPP", "LambdaCase", "RecordWildCards", "PatternSynonyms" ]
+                  [ "LambdaCase", "RecordWildCards", "PatternSynonyms" ]
                 , dependencies = [ "base >=4.8 && <5" ]
                 , exposed-modules = "GHC.TcPluginM.Extra"
                 , other-modules = "Internal"
