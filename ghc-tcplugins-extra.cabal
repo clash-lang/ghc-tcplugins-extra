@@ -105,8 +105,6 @@ library
         ghc >=8.8 && <8.10
     mixins:
         ghc hiding ()
-      , ghc (TcRnTypes as TcRnTypes)
-      , ghc (Type as Type)
       , ghc (TcRnTypes as Constraint)
       , ghc (Type as Predicate)
   if impl(ghc >= 8.6) && impl(ghc < 8.8)
@@ -124,8 +122,6 @@ library
         ghc >=8.6 && <8.8
     mixins:
         ghc hiding ()
-      , ghc (TcRnTypes as TcRnTypes)
-      , ghc (Type as Type)
       , ghc (TcRnTypes as Constraint)
       , ghc (Type as Predicate)
   if impl(ghc >= 8.4) && impl(ghc < 8.6)
@@ -143,8 +139,6 @@ library
         ghc >=8.4 && <8.6
     mixins:
         ghc hiding ()
-      , ghc (TcRnTypes as TcRnTypes)
-      , ghc (Type as Type)
       , ghc (TcRnTypes as Constraint)
       , ghc (Type as Predicate)
   if impl(ghc >= 8.2) && impl(ghc < 8.4)
@@ -162,8 +156,6 @@ library
         ghc >=8.2 && <8.4
     mixins:
         ghc hiding ()
-      , ghc (TcRnTypes as TcRnTypes)
-      , ghc (Type as Type)
       , ghc (TcRnTypes as Constraint)
       , ghc (Type as Predicate)
   if impl(ghc >= 8.0) && impl(ghc < 8.2)
@@ -181,8 +173,6 @@ library
         ghc >=8.0 && <8.2
     mixins:
         ghc hiding ()
-      , ghc (TcRnTypes as TcRnTypes)
-      , ghc (Type as Type)
       , ghc (TcRnTypes as Constraint)
       , ghc (Type as Predicate)
   if impl(ghc >= 7.10) && impl(ghc < 8.0)
