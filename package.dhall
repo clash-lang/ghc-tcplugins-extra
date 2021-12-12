@@ -38,7 +38,7 @@ in  let mods =
                 , exposed-modules = "GHC.TcPluginM.Extra"
                 , other-modules = "Internal"
                 , when =
-                  [ { condition = "impl(ghc >= 9.2)"
+                  [ { condition = "impl(ghc >= 9.2) && impl(ghc < 9.4)"
                     , source-dirs = [ "src-ghc-tree", "src-ghc-9.2" ]
                     , dependencies =
                       [ { name = "ghc"
