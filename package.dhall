@@ -38,7 +38,17 @@ in  let mods =
                 , exposed-modules = "GHC.TcPluginM.Extra"
                 , other-modules = "Internal"
                 , when =
-                  [ { condition = "impl(ghc >= 9.0)"
+                  [ { condition = "impl(ghc >= 9.2)"
+                    , source-dirs = [ "src-ghc-tree", "src-ghc-9.2" ]
+                    , dependencies =
+                      [ { name = "ghc"
+                        , version = ">=9.2 && <9.4"
+                        , mixin = [] : List Text
+                        }
+                      ]
+                    , other-modules = mods
+                    }
+                  , { condition = "impl(ghc >= 9.0) && impl(ghc < 9.2)"
                     , source-dirs = [ "src-ghc-tree", "src-ghc-9.0" ]
                     , dependencies =
                       [ { name = "ghc"
@@ -52,7 +62,7 @@ in  let mods =
                     , source-dirs = [ "src-ghc-flat", "src-ghc-8.10" ]
                     , dependencies =
                       [ { name = "ghc"
-                        , version = ">=8.10 && <8.12"
+                        , version = ">=8.10 && <9.0"
                         , mixin = [] : List Text
                         }
                       ]
