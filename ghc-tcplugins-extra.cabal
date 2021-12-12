@@ -44,10 +44,6 @@ library
       Internal
   hs-source-dirs:
       src
-  other-extensions:
-      LambdaCase
-      RecordWildCards
-      PatternSynonyms
   ghc-options: -Wall -Werror
   build-depends:
       base >=4.8 && <5
