@@ -1,4 +1,4 @@
-module Internal.Constraint (module TcPluginM, flatToCt) where
+module Internal.Constraint (module TcPluginM, flatToCt, overEvidencePredType) where
 
 import GhcApi.GhcPlugins
 import GhcApi.Constraint
@@ -16,3 +16,11 @@ flatToCt [((_,lhs),ct),((_,rhs),_)]
               (ctLoc ct)
 
 flatToCt _ = Nothing
+
+-- | Modify the predicate type of the evidence term of a constraint
+overEvidencePredType :: (TcType -> TcType) -> Ct -> Ct
+overEvidencePredType f ct =
+  let
+    ev :: CtEvidence
+    ev = cc_ev ct
+  in ct { cc_ev = ev { ctev_pred = f (ctev_pred ev) } }

@@ -24,24 +24,21 @@ module Internal
   )
 where
 
-import GHC.Utils.Panic (panicDoc)
 import GHC.Tc.Plugin (TcPluginM, lookupOrig, tcPluginTrace)
 import qualified GHC.Tc.Plugin as TcPlugin
     (newDerived, newWanted, getTopEnv, tcPluginIO, findImportedModule)
-import qualified GHC.Driver.Finder as Finder (findPluginModule)
 import GHC.Tc.Types (TcPlugin(..), TcPluginResult(..))
 import Control.Arrow (first, second)
 import Data.Function (on)
 import Data.List (groupBy, partition, sortOn)
 import GHC.Tc.Utils.TcType (TcType)
 import Data.Maybe (mapMaybe)
-import GHC.Core.TyCo.Rep (Type (..))
 
 import GhcApi.Constraint (Ct(..), CtEvidence(..), CtLoc)
 import GhcApi.GhcPlugins
 
 import Internal.Type (substType)
-import Internal.Constraint (newGiven, flatToCt)
+import Internal.Constraint (newGiven, flatToCt, mkSubst, overEvidencePredType)
 import Internal.Evidence (evByFiat)
 
 pattern FoundModule :: Module -> FindResult
@@ -65,7 +62,7 @@ lookupModule :: ModuleName -- ^ Name of the module
              -> TcPluginM Module
 lookupModule mod_nm _pkg = do
   hsc_env <- TcPlugin.getTopEnv
-  found_module <- TcPlugin.tcPluginIO $ Finder.findPluginModule hsc_env mod_nm
+  found_module <- TcPlugin.tcPluginIO $ findPluginModule hsc_env mod_nm
   case found_module of
     FoundModule h -> return (fr_mod h)
     _          -> do
@@ -139,14 +136,6 @@ mkSubst' = foldr substSubst [] . mapMaybe mkSubst
   substSubst ((tv,t),ct) s = ((tv,substType (map fst s) t),ct)
                            : map (first (second (substType [(tv,t)]))) s
 
--- | Create simple substitution from type equalities
-mkSubst :: Ct -> Maybe ((TcTyVar, TcType),Ct)
-mkSubst ct@(CTyEqCan {..})  = Just ((cc_tyvar,cc_rhs),ct)
-mkSubst ct@(CFunEqCan {..}) = Just ((cc_fsk,TyConApp cc_fun cc_tyargs),ct)
-mkSubst _                   = Nothing
-
 -- | Apply substitution in the evidence of Cts
 substCt :: [(TcTyVar, TcType)] -> Ct -> Ct
-substCt subst ct =
-  ct { cc_ev = (cc_ev ct) {ctev_pred = substType subst (ctev_pred (cc_ev ct))}
-     }
+substCt subst = overEvidencePredType (substType subst)
