@@ -1,5 +1,7 @@
 let defs = ./defaults.dhall
 
+let version = ./version.dhall
+
 in  let ghc = { name = "ghc", mixin = [] : List Text }
 
     in  let gin =
@@ -29,54 +31,15 @@ in  let ghc = { name = "ghc", mixin = [] : List Text }
                     , exposed-modules = "GHC.TcPluginM.Extra"
                     , other-modules = "Internal"
                     , when =
-                      [ { condition = "impl(ghc >= 9.2) && impl(ghc < 9.4)"
-                        , source-dirs = [ "src-ghc-tree", "src-ghc-9.2" ]
-                        , dependencies = [ ghc ⫽ { version = ">=9.2 && <9.4" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 9.0) && impl(ghc < 9.2)"
-                        , source-dirs = [ "src-ghc-tree", "src-ghc-9.0" ]
-                        , dependencies = [ ghc ⫽ { version = ">=9.0 && <9.2" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 8.10.0) && impl(ghc < 9.0)"
-                        , source-dirs = [ "src-ghc-flat", "src-ghc-8.10" ]
-                        , dependencies =
-                          [ ghc ⫽ { version = ">=8.10 && <9.0" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 8.8.0) && impl(ghc < 8.10.0)"
-                        , source-dirs = [ "src-ghc-flat", "src-ghc-8.8" ]
-                        , dependencies =
-                          [ gin ⫽ { version = ">=8.8 && <8.10" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 8.6.0) && impl(ghc < 8.8.0)"
-                        , source-dirs = [ "src-ghc-flat", "src-ghc-8.6" ]
-                        , dependencies = [ gin ⫽ { version = ">=8.6 && <8.8" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 8.4.0) && impl(ghc < 8.6.0)"
-                        , source-dirs = [ "src-ghc-flat", "src-ghc-8.4" ]
-                        , dependencies = [ gin ⫽ { version = ">=8.4 && <8.6" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 8.2.0) && impl(ghc < 8.4.0)"
-                        , source-dirs = [ "src-ghc-flat", "src-ghc-8.2" ]
-                        , dependencies = [ gin ⫽ { version = ">=8.2 && <8.4" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 8.0.0) && impl(ghc < 8.2.0)"
-                        , source-dirs = [ "src-ghc-flat", "src-ghc-8.0" ]
-                        , dependencies = [ gin ⫽ { version = ">=8.0 && <8.2" } ]
-                        , other-modules = mods
-                        }
-                      , { condition = "impl(ghc >= 7.10.0) && impl(ghc < 8.0.0)"
-                        , source-dirs = [ "src-ghc-cpp" ]
-                        , dependencies =
-                          [ ghc ⫽ { version = ">=7.10 && <8.0" } ]
-                        , other-modules = [] : List Text
-                        }
+                      [ version "9.2" "9.4" [ "tree", "9.2" ] ghc mods
+                      , version "9.0" "9.2" [ "tree", "9.0" ] ghc mods
+                      , version "8.10" "9.0" [ "flat", "8.10" ] ghc mods
+                      , version "8.8" "8.10" [ "flat", "8.8" ] gin mods
+                      , version "8.6" "8.8" [ "flat", "8.6" ] gin mods
+                      , version "8.4" "8.6" [ "flat", "8.4" ] gin mods
+                      , version "8.2" "8.4" [ "flat", "8.2" ] gin mods
+                      , version "8.0" "8.2" [ "flat", "8.0" ] gin mods
+                      , version "7.10" "8.0" [ "cpp" ] ghc ([] : List Text)
                       ]
                     }
                   }
