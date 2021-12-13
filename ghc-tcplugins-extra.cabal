@@ -44,13 +44,15 @@ library
       Internal
   hs-source-dirs:
       src
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
   build-depends:
       base >=4.8 && <5
   if impl(ghc >= 8.0.0)
     ghc-options: -Wcompat -Wincomplete-uni-patterns -Widentities -Wredundant-constraints
   if impl(ghc >= 8.4.0)
     ghc-options: -fhide-source-paths
+  if flag(deverror)
+    ghc-options: -Werror
   if impl(ghc >= 9.2) && impl(ghc < 9.4)
     other-modules:
         GhcApi.Constraint
