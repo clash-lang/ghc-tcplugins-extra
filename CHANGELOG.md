@@ -1,3 +1,9 @@
+## 0.4.2 *June 17th 2021*
+* Support for GHC-9.2.0.20210422
+
+## 0.4.1 *January 1st 2021*
+* Support for GHC-9.0.1-rc1
+
 ## 0.4 *January 31st 2020*
 * Expose functions for flattening constraints in GHC 8.2 and earlier
 
