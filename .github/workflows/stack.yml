@@ -4,7 +4,7 @@ on:
   push:
     branches: [ci-stack, wip/ghc-lib]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   build:
@@ -41,6 +41,3 @@ jobs:
 
     - name: build
       run: stack build --no-terminal --stack-yaml=./stack/stack-${{ matrix.ghc }}.yaml
-
-
-

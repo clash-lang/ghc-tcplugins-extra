@@ -4,7 +4,7 @@ on:
   push:
     branches: [ci-cabal, wip/ghc-lib]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   build:
@@ -46,7 +46,3 @@ jobs:
       run: |
         cabal v2-update
         cabal v2-build all:libs
-
-
-
-
