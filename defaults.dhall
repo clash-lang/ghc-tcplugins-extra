@@ -20,7 +20,7 @@
     "GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.1, GHC == 9.2.1"
 , extra-source-files =
   [ "README.md", "CHANGELOG.md", "defaults.dhall", "package.dhall" ]
-, ghc-options = [ "-Wall", "-Werror" ]
+, ghc-options = [ "-Wall" ]
 , flags.deverror
   =
   { description = "Enables `-Werror` for development mode and TravisCI"
@@ -39,5 +39,6 @@
   , { condition = "impl(ghc >= 8.4.0)"
     , ghc-options = [ "-fhide-source-paths" ]
     }
+  , { condition = "flag(deverror)", ghc-options = [ "-Werror" ] }
   ]
 }
