@@ -41,6 +41,8 @@ import Internal.Type (substType)
 import Internal.Constraint (newGiven, flatToCt, mkSubst, overEvidencePredType)
 import Internal.Evidence (evByFiat)
 
+{-# ANN fr_mod "HLint: ignore Use camelCase" #-}
+
 pattern FoundModule :: Module -> FindResult
 pattern FoundModule a <- Found _ a
 
@@ -73,7 +75,7 @@ lookupModule mod_nm _pkg = do
 
 -- | Find a 'Name' in a 'Module' given an 'OccName'
 lookupName :: Module -> OccName -> TcPluginM Name
-lookupName md occ = lookupOrig md occ
+lookupName = lookupOrig
 
 -- | Print out extra information about the initialisation, stop, and every run
 -- of the plugin when @-ddump-tc-trace@ is enabled.
