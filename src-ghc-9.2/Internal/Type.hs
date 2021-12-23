@@ -1,5 +1,6 @@
 module Internal.Type (substType) where
 
+import Data.Maybe (fromMaybe)
 import GHC.Tc.Utils.TcType (TcType)
 import GHC.Core.TyCo.Rep (Type (..))
 import GHC.Types.Var (TcTyVar)
@@ -11,9 +12,8 @@ substType
   :: [(TcTyVar, TcType)]
   -> TcType
   -> TcType
-substType subst tv@(TyVarTy v) = case lookup v subst of
-  Just t  -> t
-  Nothing -> tv
+substType subst tv@(TyVarTy v) =
+  fromMaybe tv (lookup v subst)
 substType subst (AppTy t1 t2) =
   AppTy (substType subst t1) (substType subst t2)
 substType subst (TyConApp tc xs) =
