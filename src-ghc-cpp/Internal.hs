@@ -120,6 +120,8 @@ import Control.Monad (unless)
 import StaticFlags   (initStaticOpts, v_opt_C_ready)
 #endif
 
+{-# ANN module "HLint: ignore" #-}
+
 #if __GLASGOW_HASKELL__ >= 711
 pattern FoundModule :: Module -> FindResult
 pattern FoundModule a <- Found _ a
