@@ -25,7 +25,8 @@ in  let ghc = { name = "ghc", mixin = [] : List Text }
             in    defs
                 ⫽ { library =
                     { source-dirs = "src"
-                    , dependencies = [ "base >=4.8 && <5" ]
+                    , dependencies =
+                      [ "base >=4.8 && <5", "ghc >=7.10 && <9.4" ]
                     , exposed-modules = "GHC.TcPluginM.Extra"
                     , other-modules = "Internal"
                     , when =
