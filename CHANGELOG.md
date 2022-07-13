@@ -1,3 +1,6 @@
+## 0.4.3 *September 2nd 2022*
+* Support for GHC-9.4.2
+
 ## 0.4.2 *June 17th 2021*
 * Support for GHC-9.2.0.20210422
 
