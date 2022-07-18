@@ -142,9 +142,9 @@ mkSubst' = foldr substSubst [] . mapMaybe mkSubst
 
 -- | Create simple substitution from type equalities
 mkSubst :: Ct -> Maybe ((TcTyVar, TcType),Ct)
-mkSubst ct@(CTyEqCan {..})  = Just ((cc_tyvar,cc_rhs),ct)
-mkSubst ct@(CFunEqCan {..}) = Just ((cc_fsk,TyConApp cc_fun cc_tyargs),ct)
-mkSubst _                   = Nothing
+mkSubst ct@CTyEqCan{..}  = Just ((cc_tyvar,cc_rhs),ct)
+mkSubst ct@CFunEqCan{..} = Just ((cc_fsk,TyConApp cc_fun cc_tyargs),ct)
+mkSubst _                = Nothing
 
 -- | Apply substitution in the evidence of Cts
 substCt :: [(TcTyVar, TcType)] -> Ct -> Ct
