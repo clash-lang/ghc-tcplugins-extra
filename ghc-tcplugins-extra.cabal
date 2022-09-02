@@ -5,7 +5,7 @@ cabal-version: 2.0
 -- see: https://github.com/sol/hpack
 
 name:           ghc-tcplugins-extra
-version:        0.4.2
+version:        0.4.3
 synopsis:       Utilities for writing GHC type-checker plugins
 description:    Utilities for writing GHC type-checker plugins, such as
                 creating constraints, with a stable API covering multiple
