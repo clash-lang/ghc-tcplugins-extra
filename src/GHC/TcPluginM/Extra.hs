@@ -11,7 +11,9 @@ module GHC.TcPluginM.Extra
   ( -- * Create new constraints
     newWanted
   , newGiven
+#if __GLASGOW_HASKELL__ < 904
   , newDerived
+#endif
 #if __GLASGOW_HASKELL__ < 711
   , newWantedWithProvenance
 #endif
