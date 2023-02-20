@@ -1,3 +1,6 @@
+## 0.4.4 *February 20th 2023*
+* Support for GHC-9.6.0.20230210
+
 ## 0.4.3 *September 2nd 2022*
 * Support for GHC-9.4.2
 
