@@ -1,5 +1,5 @@
 { name = "ghc-tcplugins-extra"
-, version = "0.4.2"
+, version = "0.4.3"
 , synopsis = "Utilities for writing GHC type-checker plugins"
 , description =
     ''
@@ -17,7 +17,7 @@
 , license = "BSD2"
 , license-file = "LICENSE"
 , tested-with =
-    "GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.4, GHC == 9.0.2, GHC == 9.2.1, GHC == 9.4.1"
+    "GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2, GHC == 9.2.6, GHC == 9.4.4, GHC == 9.6.1"
 , extra-source-files =
   [ "README.md", "CHANGELOG.md", "defaults.dhall", "package.dhall" ]
 , ghc-options = [ "-Wall" ]
