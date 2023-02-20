@@ -32,10 +32,8 @@ jobs:
         stack-version: 'latest'
         cabal-version: ${{ matrix.cabal }}
 
-    - uses: rwe/actions-hlint-setup@v1
+    - uses: haskell/actions/hlint-setup@v2
       name: Set up HLint
-      with:
-        version: "3.3.4"
 
     - uses: actions/cache@v2
       name: Cache ~/.stack
@@ -46,7 +44,7 @@ jobs:
     - name: build
       run: stack build --no-terminal --stack-yaml=./stack/stack-${{ matrix.ghc }}.yaml
 
-    - uses: rwe/actions-hlint-run@v2
+    - uses: haskell/actions/hlint-run@v2
       name: hlint
       with:
         path: .
