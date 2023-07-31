@@ -17,7 +17,7 @@
 , license = "BSD2"
 , license-file = "LICENSE"
 , tested-with =
-    "GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2, GHC == 9.2.6, GHC == 9.4.4, GHC == 9.6.1"
+    "GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2, GHC == 9.2.8, GHC == 9.4.5, GHC == 9.6.2"
 , extra-source-files =
   [ "README.md", "CHANGELOG.md", "defaults.dhall", "package.dhall" ]
 , ghc-options = [ "-Wall" ]
