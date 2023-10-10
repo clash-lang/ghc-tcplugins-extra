@@ -1,6 +1,6 @@
 cabal-version: 2.0
 
--- This file has been generated from package.dhall by hpack version 0.35.3.
+-- This file has been generated from package.dhall by hpack version 0.35.5.
 --
 -- see: https://github.com/sol/hpack
 
@@ -21,7 +21,7 @@ license:        BSD2
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2, GHC == 9.2.8, GHC == 9.4.5, GHC == 9.6.2
+    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2, GHC == 9.2.8, GHC == 9.4.7, GHC == 9.6.3, GHC == 9.8.1
 extra-source-files:
     README.md
     CHANGELOG.md
