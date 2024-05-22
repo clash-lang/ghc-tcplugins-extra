@@ -26,11 +26,12 @@ in  let ghc = { name = "ghc", mixin = [] : List Text }
                 //  { library =
                       { source-dirs = "src"
                       , dependencies =
-                        [ "base >=4.8 && <5", "ghc >=7.10 && <9.10" ]
+                        [ "base >=4.8 && <5", "ghc >=7.10 && <9.12" ]
                       , exposed-modules = "GHC.TcPluginM.Extra"
                       , other-modules = "Internal"
                       , when =
-                        [ version "9.8" "9.10" [ "tree-9.4", "9.8" ] ghc mods
+                        [ version "9.10" "9.12" [ "tree-9.4", "9.10" ] ghc mods
+                        , version "9.8" "9.10" [ "tree-9.4", "9.8" ] ghc mods
                         , version "9.4" "9.8" [ "tree-9.4", "9.4" ] ghc mods
                         , version "9.2" "9.4" [ "tree", "9.2" ] ghc mods
                         , version "9.0" "9.2" [ "tree", "9.0" ] ghc mods
@@ -40,7 +41,6 @@ in  let ghc = { name = "ghc", mixin = [] : List Text }
                         , version "8.4" "8.6" [ "flat", "8.4" ] gin mods
                         , version "8.2" "8.4" [ "flat", "8.2" ] gin mods
                         , version "8.0" "8.2" [ "flat", "8.0" ] gin mods
-                        , version "7.10" "8.0" [ "cpp" ] ghc ([] : List Text)
                         ]
                       }
                     }

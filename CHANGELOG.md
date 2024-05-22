@@ -1,3 +1,7 @@
+## 0.4.6 *May 22nd 2024*
+* Added support for GHC-9.10.1
+* Removed support for GHC 7.10
+
 ## 0.4.5 *October 10th 2023*
 * Support for GHC-9.8.1
 
