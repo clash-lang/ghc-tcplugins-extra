@@ -1,3 +1,7 @@
+## 0.5 *March 4th 2024*
+* Add `evByFiatWithDependencies`, see https://gitlab.haskell.org/ghc/ghc/-/merge_requests/12037 for more details.
+* Added support for GHC 9.12.1
+
 ## 0.4.6 *May 22nd 2024*
 * Added support for GHC-9.10.1
 * Removed support for GHC 7.10
