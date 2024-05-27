@@ -9,6 +9,7 @@ module Internal
   , newGiven
   , newDerived
     -- * Creating evidence
+  , evByFiatWithDependencies
   , evByFiat
     -- * Lookup
   , lookupModule
@@ -39,7 +40,7 @@ import GhcApi.GhcPlugins
 
 import Internal.Type (substType)
 import Internal.Constraint (newGiven, flatToCt, mkSubst, overEvidencePredType)
-import Internal.Evidence (evByFiat)
+import Internal.Evidence (evByFiat, evByFiatWithDependencies)
 
 {-# ANN fr_mod "HLint: ignore Use camelCase" #-}
 

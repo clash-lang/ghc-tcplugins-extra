@@ -7,6 +7,7 @@ module Internal
     TcPlugin.newWanted
   , newGiven
     -- * Creating evidence
+  , evByFiatWithDependencies
   , evByFiat
     -- * Lookup
   , lookupModule
@@ -38,7 +39,7 @@ import GhcApi.GhcPlugins
 
 import Internal.Type (substType)
 import Internal.Constraint (newGiven, flatToCt, mkSubst, overEvidencePredType)
-import Internal.Evidence (evByFiat)
+import Internal.Evidence (evByFiatWithDependencies, evByFiat)
 
 -- | Find a module
 lookupModule :: ModuleName -- ^ Name of the module

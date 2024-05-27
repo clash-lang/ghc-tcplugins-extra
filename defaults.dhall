@@ -1,5 +1,5 @@
 { name = "ghc-tcplugins-extra"
-, version = "0.4.6"
+, version = "0.5"
 , synopsis = "Utilities for writing GHC type-checker plugins"
 , description =
     ''

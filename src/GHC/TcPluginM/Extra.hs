@@ -18,6 +18,7 @@ module GHC.TcPluginM.Extra
   , newWantedWithProvenance
 #endif
     -- * Creating evidence
+  , evByFiatWithDependencies
   , evByFiat
 #if __GLASGOW_HASKELL__ < 711
     -- * Report contractions

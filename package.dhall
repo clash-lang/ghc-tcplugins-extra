@@ -30,7 +30,8 @@ in  let ghc = { name = "ghc", mixin = [] : List Text }
                       , exposed-modules = "GHC.TcPluginM.Extra"
                       , other-modules = "Internal"
                       , when =
-                        [ version "9.10" "9.12" [ "tree-9.4", "9.10" ] ghc mods
+                        [ version "9.11" "9.13" [ "tree-9.4", "9.12" ] ghc mods
+                        , version "9.10" "9.11" [ "tree-9.4", "9.10" ] ghc mods
                         , version "9.8" "9.10" [ "tree-9.4", "9.8" ] ghc mods
                         , version "9.4" "9.8" [ "tree-9.4", "9.4" ] ghc mods
                         , version "9.2" "9.4" [ "tree", "9.2" ] ghc mods
